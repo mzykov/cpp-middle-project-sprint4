@@ -28,13 +28,16 @@
 
 int main(int argc, char *argv[]) {
     analyser::cmd::ProgramOptions options;
-    // распарсите входные параметры
+    options.Parse(argc, argv);
 
-    // analyser::metric::MetricExtractor metric_extractor;
+    analyser::metric::MetricExtractor metric_extractor;
     // зарегистрируйте метрики в metric_extractor
 
-    // запустите analyser::AnalyseFunctions
-    // выведете результаты анализа на консоль
+    auto analyseResults = analyser::AnalyseFunctions(
+        options.GetFiles(), metric_extractor
+    );
+
+    analyser::PrintAnalyseResults(analyseResults);
 
     // analyser::metric_accumulator::MetricsAccumulator accumulator;
     // зарегистрируйте аккумуляторы метрик в accumulator
