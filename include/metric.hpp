@@ -29,14 +29,17 @@ struct MetricResult {
     using ValueType = int;
     // using ValueType = std::variant<int, std::string>; // если захотите реализовывать метрику
     // naming style
-    std::string metric_name;  // Название метрики
-    ValueType value;          // Значение метрики
+    std::string metric_name;
+    ValueType metric_value;
 };
 
 struct IMetric {
     virtual ~IMetric() = default;
     MetricResult Calculate(const function::Function &f) const {
-        return MetricResult{.metric_name = Name(), .value = CalculateImpl(f)};
+        return MetricResult{
+            .metric_name = Name(),
+            .metric_value = CalculateImpl(f),
+        };
     }
 
 protected:
