@@ -1,4 +1,5 @@
 #pragma once
+
 #include <unistd.h>
 
 #include <algorithm>
@@ -27,8 +28,7 @@ namespace analyser::metric {
 
 struct MetricResult {
     using ValueType = int;
-    // using ValueType = std::variant<int, std::string>; // если захотите реализовывать метрику
-    // naming style
+    // using ValueType = std::variant<int, std::string>;
     std::string metric_name;
     ValueType metric_value;
 };
@@ -51,7 +51,6 @@ using MetricResults = std::vector<MetricResult>;
 
 struct MetricExtractor {
     void RegisterMetric(std::unique_ptr<IMetric> metric);
-
     MetricResults Get(const function::Function &func) const;
     std::vector<std::unique_ptr<IMetric>> metrics;
 };

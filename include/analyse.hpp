@@ -49,7 +49,7 @@ auto AnalyseFunctions(const std::vector<std::string> &files,
     return res;
 }
 
-void PrintAnalyseResults(const auto &v) {
+void PrintAnalyseResults(const auto &analysis) {
     // TODO
 }
 

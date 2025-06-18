@@ -1,3 +1,7 @@
+#pragma once
+
+#include <unistd.h>
+
 #include <array>
 #include <cstdio>
 #include <cstdlib>

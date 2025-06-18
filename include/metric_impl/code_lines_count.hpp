@@ -1,4 +1,5 @@
 #pragma once
+
 #include <unistd.h>
 
 #include <algorithm>
@@ -20,11 +21,13 @@
 
 namespace analyser::metric::metric_impl {
 
-struct CodeLinesCountMetric final : IMetric {
+struct CodeLinesCountMetric final : public IMetric {
 
 protected:
-    MetricResult::ValueType CalculateImpl(const function::Function &f) const override { return 0; };
+    MetricResult::ValueType CalculateImpl(const function::Function &f) const override;
     std::string Name() const override { return "CodeLinesCount"; }
 };
+
+MetricResult::ValueType CodeLinesCountMetric::CalculateImpl(const function::Function &f) const { return 0; }
 
 }  // namespace analyser::metric::metric_impl

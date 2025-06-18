@@ -1,4 +1,5 @@
 #pragma once
+
 #include <unistd.h>
 
 #include <algorithm>
@@ -20,7 +21,7 @@
 
 namespace analyser::metric::metric_impl {
 
-struct CyclomaticComplexityMetric : IMetric {
+struct CyclomaticComplexityMetric final : public IMetric {
     // здесь ваш код
 };
 
