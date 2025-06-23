@@ -1,32 +1,9 @@
 #include "function.hpp"
-
-#include <unistd.h>
-
-#include <algorithm>
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
-
-#include "file.hpp"
 #include "utils.hpp"
-
-namespace fs = std::filesystem;
-namespace rv = std::ranges::views;
-namespace rs = std::ranges;
 
 namespace analyser::function {
 
-std::vector<Function> FunctionExtractor::Get(const analyser::file::File &file) {
+std::vector<Function> FunctionExtractor::Get(const file::File &file) const {
     std::vector<Function> functions;
     size_t start = 0;
     const std::string marker = "(function_definition";
@@ -45,14 +22,14 @@ std::vector<Function> FunctionExtractor::Get(const analyser::file::File &file) {
         }
 
         auto func_ast = ast.substr(start, end - start);
-        auto name_loc = GetNameLocation(func_ast);
-        std::string func_name = GetNameFromSource(name_loc, file.source_lines);
+        auto name_loc = getNameLocation(func_ast);
+        std::string func_name = getNameFromSource(name_loc, file.source_lines);
 
         Function func{.filename = file.name, .class_name = std::nullopt, .name = func_name, .ast = func_ast};
 
-        auto class_info = FindEnclosingClass(ast, name_loc);
+        auto class_info = findEnclosingClass(ast, name_loc);
         if (class_info) {
-            func.class_name = GetClassNameFromSource(*class_info, file.source_lines);
+            func.class_name = getClassNameFromSource(*class_info, file.source_lines);
         }
 
         functions.push_back(func);
@@ -62,96 +39,86 @@ std::vector<Function> FunctionExtractor::Get(const analyser::file::File &file) {
     return functions;
 }
 
-FunctionExtractor::FunctionNameLocation FunctionExtractor::GetNameLocation(const std::string &function_ast) {
-    size_t id_pos = function_ast.find("(identifier");
-    if (id_pos == std::string::npos)
+std::pair<Position, size_t> FunctionExtractor::extractPosition(const std::string &ast, size_t start_parsing_at) const {
+    size_t coord_start = ast.find('[', start_parsing_at);
+    size_t coord_end = ast.find(']', coord_start);
+
+    std::string coords = ast.substr(coord_start + 1, coord_end - coord_start - 1);
+    size_t comma = coords.find(',');
+
+    return {Position{ToInt(coords.substr(0, comma)), ToInt(coords.substr(comma + 2))}, coord_end};
+}
+
+std::pair<Rect, size_t> FunctionExtractor::extractRect(const std::string &ast, size_t start_parsing_at) const {
+    auto [start, next_parsing_at] = extractPosition(ast, start_parsing_at);
+    auto [end, further_parsing_at] = extractPosition(ast, next_parsing_at);
+    Rect rect{start, end};
+    return {rect, further_parsing_at};
+}
+
+Rect FunctionExtractor::getNameLocation(const std::string &function_ast) const {
+    size_t start_parsing_at = function_ast.find("(identifier");
+
+    if (start_parsing_at == std::string::npos)
         return {};
 
-    size_t coord_start = function_ast.find('[', id_pos);
-    size_t coord_end = function_ast.find(']', coord_start);
-    std::string coords = function_ast.substr(coord_start + 1, coord_end - coord_start - 1);
+    auto [rect, _] = extractRect(function_ast, start_parsing_at);
 
-    size_t comma = coords.find(',');
-    Position start{ToInt(coords.substr(0, comma)), ToInt(coords.substr(comma + 2))};
-
-    size_t dash = function_ast.find('[', coord_end);
-    size_t end_bracket = function_ast.find(']', dash);
-    std::string end_coords = function_ast.substr(dash + 1, end_bracket - dash - 1);
-
-    comma = end_coords.find(',');
-    Position end{ToInt(end_coords.substr(0, comma)), ToInt(end_coords.substr(comma + 2))};
-
-    return {start, end, ""};
+    return rect;
 }
 
-std::string FunctionExtractor::GetNameFromSource(const FunctionExtractor::FunctionNameLocation &func_loc,
-                                                 const std::vector<std::string> &lines) {
-    if (func_loc.start.line >= lines.size())
+std::string FunctionExtractor::getNameFromSource(const Rect &func_rect, const std::vector<std::string> &lines) const {
+    auto &start = std::get<0>(func_rect);
+    auto &end = std::get<1>(func_rect);
+
+    if (start.line >= lines.size())
         return "unknown";
 
-    const std::string &target_line = lines[func_loc.start.line];
+    const std::string &target_line = lines[start.line];
 
-    if (func_loc.start.col >= target_line.size())
+    if (start.col >= target_line.size())
         return "unknown";
 
-    return target_line.substr(func_loc.start.col, func_loc.end.col - func_loc.start.col);
+    return target_line.substr(start.col, end.col - start.col);
 }
 
-std::optional<FunctionExtractor::ClassInfo>
-FunctionExtractor::FindEnclosingClass(const std::string &ast, const FunctionNameLocation &func_loc) {
-    size_t class_pos = 0;
+std::optional<Rect> FunctionExtractor::findEnclosingClass(const std::string &ast, const Rect &func_rect) const {
+    size_t start_parsing_at = 0;
     const std::string class_marker = "(class_definition";
-    std::optional<ClassInfo> last_enclosing_class;
+    std::optional<Rect> last_enclosing_class;
 
-    while ((class_pos = ast.find(class_marker, class_pos)) != std::string::npos) {
-        size_t coord_start = ast.find('[', class_pos);
-        size_t coord_end = ast.find(']', coord_start);
-        std::string coords = ast.substr(coord_start + 1, coord_end - coord_start - 1);
+    while ((start_parsing_at = ast.find(class_marker, start_parsing_at)) != std::string::npos) {
+        auto [rect, next_parsing_at] = extractRect(ast, start_parsing_at);
+        const auto [class_start, class_end] = rect;
+        const auto &start = std::get<0>(func_rect);
 
-        size_t comma = coords.find(',');
-        Position class_start{ToInt(coords.substr(0, comma)), ToInt(coords.substr(comma + 2))};
-
-        size_t dash = ast.find('-', coord_end);
-        size_t second_coord_start = ast.find('[', dash);
-        size_t second_coord_end = ast.find(']', second_coord_start);
-        std::string end_coords = ast.substr(second_coord_start + 1, second_coord_end - second_coord_start - 1);
-
-        comma = end_coords.find(',');
-        Position class_end{ToInt(end_coords.substr(0, comma)), ToInt(end_coords.substr(comma + 2))};
-
-        if (func_loc.start.line > class_start.line ||
-            (func_loc.start.line == class_start.line && func_loc.start.col >= class_start.col)) {
-            if (func_loc.start.line < class_end.line ||
-                (func_loc.start.line == class_end.line && func_loc.start.col <= class_end.col)) {
-                size_t name_start = ast.find("name:", coord_end);
+        if (start.line > class_start.line || (start.line == class_start.line && start.col >= class_start.col)) {
+            if (start.line < class_end.line || (start.line == class_end.line && start.col <= class_end.col)) {
+                size_t name_start = ast.find("name:", next_parsing_at);
                 if (name_start != std::string::npos) {
                     size_t id_start = ast.find("(identifier", name_start);
                     if (id_start != std::string::npos) {
-                        size_t id_coord_start = ast.find('[', id_start);
-                        size_t id_coord_end = ast.find(']', id_coord_start);
-                        std::string id_coords = ast.substr(id_coord_start + 1, id_coord_end - id_coord_start - 1);
-
-                        ClassInfo class_info;
-                        class_info.start = class_start;
-                        class_info.end = class_end;
-                        last_enclosing_class = class_info;
+                        next_parsing_at = id_start;
+                        last_enclosing_class = {class_start, class_end};
                     }
                 }
             }
         }
 
-        class_pos = second_coord_end;
+        start_parsing_at = next_parsing_at;
     }
 
     return last_enclosing_class;
 }
 
-std::string FunctionExtractor::GetClassNameFromSource(const ClassInfo &class_info,
-                                                      const std::vector<std::string> &lines) {
-    if (class_info.start.line >= lines.size())
+std::string FunctionExtractor::getClassNameFromSource(const Rect &class_rect,
+                                                      const std::vector<std::string> &lines) const {
+    auto start = std::get<0>(class_rect);
+
+    if (start.line >= lines.size())
         return "unknown";
 
-    const std::string &class_line = lines[class_info.start.line];
+    const std::string &class_line = lines[start.line];
 
     size_t class_pos = class_line.find("class");
     if (class_pos == std::string::npos)

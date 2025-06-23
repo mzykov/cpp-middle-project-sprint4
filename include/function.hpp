@@ -14,6 +14,7 @@
 #include <ranges>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -32,31 +33,25 @@ struct Function {
     std::string ast;
 };
 
+struct Position {
+    size_t line = 0;
+    size_t col = 0;
+};
+
+using Rect = std::pair<Position, Position>;
+
 struct FunctionExtractor {
-    std::vector<Function> Get(const analyser::file::File &file);
+    std::vector<Function> Get(const file::File &file) const;
 
 private:
-    struct Position {
-        size_t line;
-        size_t col;
-    };
+    std::pair<Position, size_t> extractPosition(const std::string &ast, size_t start_parsing_at) const;
+    std::pair<Rect, size_t> extractRect(const std::string &ast, size_t start_parsing_at) const;
 
-    struct FunctionNameLocation {
-        Position start;
-        Position end;
-        std::string name;
-    };
+    std::optional<Rect> findEnclosingClass(const std::string &full_ast, const Rect &func_rect) const;
+    std::string getClassNameFromSource(const Rect &class_rect, const std::vector<std::string> &lines) const;
 
-    struct ClassInfo {
-        Position start;
-        Position end;
-        std::string name;
-    };
-
-    FunctionNameLocation GetNameLocation(const std::string &function_ast);
-    std::string GetNameFromSource(const FunctionNameLocation &func_loc, const std::vector<std::string> &lines);
-    std::optional<ClassInfo> FindEnclosingClass(const std::string &ast, const FunctionNameLocation &func_loc);
-    std::string GetClassNameFromSource(const ClassInfo &class_info, const std::vector<std::string> &lines);
+    Rect getNameLocation(const std::string &function_ast) const;
+    std::string getNameFromSource(const Rect &func_rect, const std::vector<std::string> &lines) const;
 };
 
 }  // namespace analyser::function
