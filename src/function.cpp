@@ -46,7 +46,7 @@ std::vector<Function> FunctionExtractor::Get(const analyser::file::File &file) {
 
         auto func_ast = ast.substr(start, end - start);
         auto name_loc = GetNameLocation(func_ast);
-        std::string func_name = GetNameFromSource(func_ast, file.source_lines);
+        std::string func_name = GetNameFromSource(name_loc, file.source_lines);
 
         Function func{.filename = file.name, .class_name = std::nullopt, .name = func_name, .ast = func_ast};
 
@@ -86,17 +86,17 @@ FunctionExtractor::FunctionNameLocation FunctionExtractor::GetNameLocation(const
     return {start, end, ""};
 }
 
-std::string FunctionExtractor::GetNameFromSource(const std::string &function_ast,
+std::string FunctionExtractor::GetNameFromSource(const FunctionExtractor::FunctionNameLocation &func_loc,
                                                  const std::vector<std::string> &lines) {
-    auto loc = GetNameLocation(function_ast);
-    if (loc.start.line >= lines.size())
+    if (func_loc.start.line >= lines.size())
         return "unknown";
 
-    const std::string &target_line = lines[loc.start.line];
-    if (loc.start.col >= target_line.size())
+    const std::string &target_line = lines[func_loc.start.line];
+
+    if (func_loc.start.col >= target_line.size())
         return "unknown";
 
-    return target_line.substr(loc.start.col, loc.end.col - loc.start.col);
+    return target_line.substr(func_loc.start.col, func_loc.end.col - func_loc.start.col);
 }
 
 std::optional<FunctionExtractor::ClassInfo>

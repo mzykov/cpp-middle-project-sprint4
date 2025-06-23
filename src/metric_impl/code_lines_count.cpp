@@ -19,6 +19,6 @@
 
 namespace analyser::metric::metric_impl {
 
-// здесь ваш код
+MetricResult::ValueType CodeLinesCountMetric::CalculateImpl(const function::Function &f) const { return 0; }
 
 }  // namespace analyser::metric::metric_impl

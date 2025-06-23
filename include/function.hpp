@@ -48,13 +48,13 @@ private:
     };
 
     struct ClassInfo {
-        std::string name;
         Position start;
         Position end;
+        std::string name;
     };
 
     FunctionNameLocation GetNameLocation(const std::string &function_ast);
-    std::string GetNameFromSource(const std::string &function_ast, const std::vector<std::string> &lines);
+    std::string GetNameFromSource(const FunctionNameLocation &func_loc, const std::vector<std::string> &lines);
     std::optional<ClassInfo> FindEnclosingClass(const std::string &ast, const FunctionNameLocation &func_loc);
     std::string GetClassNameFromSource(const ClassInfo &class_info, const std::vector<std::string> &lines);
 };
