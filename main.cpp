@@ -31,7 +31,18 @@ int main(int argc, char *argv[]) {
     options.Parse(argc, argv);
 
     analyser::metric::MetricExtractor metric_extractor;
-    // зарегистрируйте метрики в metric_extractor
+    {
+        using namespace analyser::metric;
+        metric_extractor.RegisterMetric(
+            std::make_unique<metric_impl::CodeLinesCountMetric>()
+        );
+        metric_extractor.RegisterMetric(
+            std::make_unique<metric_impl::CyclomaticComplexityMetric>()
+        );
+        metric_extractor.RegisterMetric(
+            std::make_unique<metric_impl::ParametersCountMetric>()
+        );
+    }
 
     auto analyseResults = analyser::AnalyseFunctions(
         options.GetFiles(), metric_extractor

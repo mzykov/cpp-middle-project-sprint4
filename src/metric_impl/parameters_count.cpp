@@ -16,6 +16,6 @@
 
 namespace analyser::metric::metric_impl {
 
-// здесь ваш код
+MetricResult::ValueType ParametersCountMetric::CalculateImpl(const function::Function &f) const { return 0; }
 
 }  // namespace analyser::metric::metric_impl

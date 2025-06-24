@@ -22,7 +22,9 @@
 namespace analyser::metric::metric_impl {
 
 struct CyclomaticComplexityMetric final : public IMetric {
-    // здесь ваш код
+protected:
+    MetricResult::ValueType CalculateImpl(const function::Function &f) const override;
+    std::string Name() const override { return "CyclomaticComplexity"; }
 };
 
 }  // namespace analyser::metric::metric_impl

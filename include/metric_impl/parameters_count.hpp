@@ -20,8 +20,10 @@
 
 namespace analyser::metric::metric_impl {
 
-struct CountParametersMetric final : public IMetric {
-    // здесь ваш код
+struct ParametersCountMetric final : public IMetric {
+protected:
+    MetricResult::ValueType CalculateImpl(const function::Function &f) const override;
+    std::string Name() const override { return "ParametersCount"; }
 };
 
 }  // namespace analyser::metric::metric_impl
