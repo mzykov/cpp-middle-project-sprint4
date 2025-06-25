@@ -30,7 +30,7 @@ namespace rs = std::ranges;
 auto AnalyseFunctions(const std::vector<std::string> &files, const metric::MetricExtractor &metric_extractor) {
     std::vector<std::pair<function::Function, metric::MetricResults>> res;
 
-    std::for_each(files.begin(), files.end(), [&](const std::string &filename) {
+    std::for_each(files.cbegin(), files.cend(), [&](const std::string &filename) {
         const function::FunctionExtractor extractor;
         const auto funcs = extractor.ProcessOneFile(file::File{filename});
 
@@ -44,7 +44,20 @@ auto AnalyseFunctions(const std::vector<std::string> &files, const metric::Metri
 }
 
 void PrintAnalyseResults(const auto &analysis) {
-    // TODO
+    for (const auto &p : analysis) {
+        using namespace std::string_literals;
+
+        const auto &[func, results] = p;
+        std::string headline = func.filename;
+        if (func.class_name) {
+            headline += "::"s + *func.class_name;
+        }
+        headline += "::"s + func.name + "\n";
+        std::print("\n{}", headline);
+
+        std::for_each(results.cbegin(), results.cend(),
+                      [](const auto &m) { std::print("\t{}: {}\n", m.metric_name, m.metric_value); });
+    }
 }
 
 auto SplitByClasses(const auto &analysis) {
