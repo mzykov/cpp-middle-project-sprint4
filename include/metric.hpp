@@ -5,7 +5,7 @@
 namespace analyser::metric {
 
 struct MetricResult {
-    using ValueType = int;
+    using ValueType = size_t;
     std::string metric_name;
     ValueType metric_value;
 };

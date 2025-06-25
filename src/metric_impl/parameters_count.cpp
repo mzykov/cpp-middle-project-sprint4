@@ -4,10 +4,14 @@ namespace analyser::metric::metric_impl {
 
 MetricResult::ValueType ParametersCountMetric::CalculateImpl(const function::Function &f,
                                                              const ast_extractor::ASTExtractor &e) const {
-    return 0;
-    //    const std::string marker = "(parameters";
-    //    const auto [parameters_ast, _] = f.parser->extractSubtree(f.ast, marker, 0);
-    //    return f.parser->countFirstLevelSubNodes(parameters_ast);
+    const auto data = e.ExtractParametersASTFragment(f.ast);
+
+    if (data) {
+        const auto [parameters_ast, _] = *data;
+        return e.CountFirstLevelASTNodes(parameters_ast);
+    } else {
+        return 0;
+    }
 }
 
 }  // namespace analyser::metric::metric_impl

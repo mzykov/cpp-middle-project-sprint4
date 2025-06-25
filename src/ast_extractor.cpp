@@ -4,6 +4,52 @@
 namespace analyser::ast_extractor {
 
 std::optional<std::pair<std::string, size_t>>
+ASTExtractor::ExtractClassDefenitionASTFragment(const std::string &ast, size_t start_parsing_at) const {
+    const std::string marker = "(class_defenition";
+    return extractASTFragment(ast, marker, start_parsing_at);
+}
+
+std::optional<std::pair<std::string, size_t>>
+ASTExtractor::ExtractFunctionDefenitionASTFragment(const std::string &ast, size_t start_parsing_at) const {
+    const std::string marker = "(function_defenition";
+    return extractASTFragment(ast, marker, start_parsing_at);
+}
+
+std::optional<std::pair<std::string, size_t>>
+ASTExtractor::ExtractIdentifierASTFragment(const std::string &ast, size_t start_parsing_at) const {
+    const std::string marker = "(identifier";
+    return extractASTFragment(ast, marker, start_parsing_at);
+}
+
+std::optional<std::pair<std::string, size_t>>
+ASTExtractor::ExtractParametersASTFragment(const std::string &ast, size_t start_parsing_at) const {
+    const std::string marker = "(parameters";
+    return extractASTFragment(ast, marker, start_parsing_at);
+}
+
+size_t ASTExtractor::CountFirstLevelASTNodes(const std::string &ast) const { return CountNthLevelASTNodes(ast, 1); }
+
+size_t ASTExtractor::CountNthLevelASTNodes(const std::string &ast_begins_with_one_opened_brace, size_t level) const {
+    size_t open_braces = 1, end = 1;
+    size_t res = 0;
+    const auto &ast = ast_begins_with_one_opened_brace;
+
+    while (end < ast.size() && open_braces > 0) {
+        if (ast[end] == '(') {
+            open_braces++;
+        } else if (ast[end] == ')') {
+            open_braces--;
+            if (open_braces == level) {
+                ++res;
+            }
+        }
+        end++;
+    }
+
+    return res;
+}
+
+std::optional<std::pair<std::string, size_t>>
 ASTExtractor::extractASTFragment(const std::string &ast, const std::string &marker_with_one_opened_brace,
                                  size_t start_parsing_at) const {
 
