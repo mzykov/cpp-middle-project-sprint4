@@ -44,13 +44,15 @@ int main(int argc, char *argv[]) {
         );
     }
 
+    // options.GetFiles() | analyser::file | analyser::extractor | analyser::printer;
+
     auto analyseResults = analyser::AnalyseFunctions(
         options.GetFiles(), metric_extractor
     );
 
     analyser::PrintAnalyseResults(analyseResults);
 
-    // analyser::metric_accumulator::MetricsAccumulator accumulator;
+    analyser::metric_accumulator::MetricsAccumulator accumulator;
     // зарегистрируйте аккумуляторы метрик в accumulator
 
     // запустите analyser::SplitByFiles

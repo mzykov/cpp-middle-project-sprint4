@@ -27,18 +27,12 @@ namespace analyser {
 namespace rv = std::ranges::views;
 namespace rs = std::ranges;
 
-auto analyseFunctionsForFile(const std::string &filename) {
-    file::File file(filename);
-    function::FunctionExtractor extractor;
-    return extractor.Get(file);
-}
-
-auto AnalyseFunctions(const std::vector<std::string> &files,
-                      const analyser::metric::MetricExtractor &metric_extractor) {
+auto AnalyseFunctions(const std::vector<std::string> &files, const metric::MetricExtractor &metric_extractor) {
     std::vector<std::pair<function::Function, metric::MetricResults>> res;
 
     std::for_each(files.begin(), files.end(), [&](const std::string &filename) {
-        const auto funcs = analyseFunctionsForFile(filename);
+        const function::FunctionExtractor extractor;
+        const auto funcs = extractor.ProcessOneFile(file::File{filename});
 
         std::for_each(funcs.cbegin(), funcs.cend(), [&metric_extractor, &res](const auto &func) {
             const auto metrics = metric_extractor.Get(func);
@@ -61,8 +55,7 @@ auto SplitByFiles(const auto &analysis) {
     // здесь ваш код
 }
 
-void AccumulateFunctionAnalysis(const auto &analysis,
-                                const analyser::metric_accumulator::MetricsAccumulator &accumulator) {
+void AccumulateFunctionAnalysis(const auto &analysis, const metric_accumulator::MetricsAccumulator &accumulator) {
     // здесь ваш код
 }
 

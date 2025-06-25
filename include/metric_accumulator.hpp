@@ -40,12 +40,13 @@ struct MetricsAccumulator {
     void RegisterAccumulator(const std::string &metric_name, std::unique_ptr<Accumulator> acc) {
         // здесь ваш код
     }
+
     template <typename Accumulator>
     const Accumulator &GetFinalizedAccumulator(const std::string &metric_name) const {
         // здесь ваш код
     }
-    void AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const;
 
+    void AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const;
     void ResetAccumulators();
 
 private:

@@ -1,8 +1,17 @@
 
 add_custom_target(unit_tests)
 
+add_library(ast_extractor
+    ast_extractor.cpp
+)
+
 add_library(function
     function.cpp
+)
+
+target_link_libraries(function
+    PUBLIC
+        ast_extractor
 )
 
 add_library(file

@@ -20,15 +20,14 @@
 
 #include "function.hpp"
 
+namespace analyser::metric {
+
 namespace fs = std::filesystem;
 namespace rv = std::ranges::views;
 namespace rs = std::ranges;
 
-namespace analyser::metric {
-
 struct MetricResult {
     using ValueType = int;
-    // using ValueType = std::variant<int, std::string>;
     std::string metric_name;
     ValueType metric_value;
 };

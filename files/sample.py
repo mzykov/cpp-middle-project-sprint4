@@ -21,6 +21,8 @@ def lambda_demo():
     numbers = [1, 2, 3, 4, 5]
 
     # Лямбда для фильтрации
+    # dvdfvfdvdfvdk
+    # fdvvfdvfdv
     even = filter(lambda x: x % 2 == 0, numbers)
 
     # Лямбда для преобразования
