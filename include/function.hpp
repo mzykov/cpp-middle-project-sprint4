@@ -19,7 +19,7 @@ public:
     std::vector<Function> ProcessOneFile(const file::File &file) const;
 
 private:
-    ast_extractor::ASTExtractor extractor_{};
+    ast_extractor::ASTExtractor extractor_;
 
     std::string getClassNameFromSource(const ast::Rect &class_rect, const std::vector<std::string> &lines) const;
     std::string getFunctionNameFromSource(const ast::Rect &func_rect, const std::vector<std::string> &lines) const;

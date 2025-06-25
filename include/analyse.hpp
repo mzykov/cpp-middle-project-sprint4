@@ -35,7 +35,7 @@ auto AnalyseFunctions(const std::vector<std::string> &files, const metric::Metri
         const auto funcs = extractor.ProcessOneFile(file::File{filename});
 
         std::for_each(funcs.cbegin(), funcs.cend(), [&metric_extractor, &res](const auto &func) {
-            const auto metrics = metric_extractor.Get(func);
+            const auto metrics = metric_extractor.ProcessOneFunction(func);
             res.emplace_back(func, metrics);
         });
     });
