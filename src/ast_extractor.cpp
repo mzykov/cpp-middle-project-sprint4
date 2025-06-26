@@ -27,6 +27,12 @@ ASTExtractor::ExtractParametersASTFragment(const std::string &ast, size_t start_
     return extractASTFragment(ast, marker, start_parsing_at);
 }
 
+std::optional<std::pair<std::string, size_t>> ASTExtractor::ExtractCommentASTFragment(const std::string &ast,
+                                                                                      size_t start_parsing_at) const {
+    const std::string marker = "(comment";
+    return extractASTFragment(ast, marker, start_parsing_at);
+}
+
 size_t ASTExtractor::CountFirstLevelASTNodes(const std::string &ast) const { return CountNthLevelASTNodes(ast, 1); }
 
 size_t ASTExtractor::CountNthLevelASTNodes(const std::string &ast_begins_with_one_opened_brace, size_t level) const {
@@ -71,10 +77,7 @@ ASTExtractor::extractASTFragment(const std::string &ast, const std::string &mark
         end++;
     }
 
-    std::optional<std::pair<std::string, size_t>> res;
-    res = {ast.substr(marker_found_at, end - marker_found_at), end};
-
-    return res;
+    return {{ast.substr(marker_found_at, end - marker_found_at), end}};
 }
 
 std::pair<ast::Position, size_t> ASTExtractor::extractPosition(const std::string &ast, size_t start_parsing_at) const {
@@ -103,10 +106,7 @@ std::optional<ast::Rect> ASTExtractor::getNameLocation(const std::string &func_a
     auto [id_ast, start_parsing_at] = *data;
     auto [rect, _] = extractRect(id_ast, 0);
 
-    std::optional<ast::Rect> res;
-    res = rect;
-
-    return res;
+    return {rect};
 }
 
 std::optional<ast::Rect> ASTExtractor::findEnclosingClass(const std::string &ast, const ast::Rect &func_rect) const {
