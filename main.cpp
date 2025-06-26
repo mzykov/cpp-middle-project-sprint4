@@ -1,22 +1,3 @@
-#include <unistd.h>
-
-#include <algorithm>
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iomanip>
-#include <iostream>
-#include <print>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
-
 #include "analyse.hpp"
 #include "cmd_options.hpp"
 #include "file.hpp"
@@ -43,8 +24,6 @@ int main(int argc, char *argv[]) {
             std::make_unique<metric_impl::ParametersCountMetric>()
         );
     }
-
-    // options.GetFiles() | analyser::file | analyser::extractor | analyser::printer;
 
     auto analyseResults = analyser::AnalyseFunctions(
         options.GetFiles(), metric_extractor

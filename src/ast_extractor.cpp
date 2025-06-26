@@ -95,8 +95,7 @@ std::pair<ast::Rect, size_t> ASTExtractor::extractRect(const std::string &ast, s
 }
 
 std::optional<ast::Rect> ASTExtractor::getNameLocation(const std::string &func_ast) const {
-    const std::string marker = "(identifier";
-    auto data = extractASTFragment(func_ast, marker, 0);
+    auto data = ExtractIdentifierASTFragment(func_ast);
 
     if (!data)
         return {};
