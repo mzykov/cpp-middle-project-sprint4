@@ -80,21 +80,42 @@ ASTExtractor::extractASTFragment(const std::string &ast, const std::string &mark
     return {{ast.substr(marker_found_at, end - marker_found_at), end}};
 }
 
-std::pair<ast::Position, size_t> ASTExtractor::extractPosition(const std::string &ast, size_t start_parsing_at) const {
+std::optional<std::pair<ast::Position, size_t>> ASTExtractor::extractPosition(const std::string &ast,
+                                                                              size_t start_parsing_at) const {
     size_t coord_start = ast.find('[', start_parsing_at);
+    if (coord_start == std::string::npos) {
+        return {};
+    }
+
     size_t coord_end = ast.find(']', coord_start);
+    if (coord_end == std::string::npos) {
+        return {};
+    }
 
     std::string coords = ast.substr(coord_start + 1, coord_end - coord_start - 1);
     size_t comma = coords.find(',');
+    if (comma == std::string::npos) {
+        return {};
+    }
 
-    return {ast::Position{ToInt(coords.substr(0, comma)), ToInt(coords.substr(comma + 2))}, coord_end};
+    return {{ast::Position{ToInt(coords.substr(0, comma)), ToInt(coords.substr(comma + 2))}, coord_end}};
 }
 
-std::pair<ast::Rect, size_t> ASTExtractor::extractRect(const std::string &ast, size_t start_parsing_at) const {
-    auto [start, next_parsing_at] = extractPosition(ast, start_parsing_at);
-    auto [end, further_parsing_at] = extractPosition(ast, next_parsing_at);
-    ast::Rect rect{start, end};
-    return {rect, further_parsing_at};
+std::optional<std::pair<ast::Rect, size_t>> ASTExtractor::extractRect(const std::string &ast,
+                                                                      size_t start_parsing_at) const {
+    auto start_data = extractPosition(ast, start_parsing_at);
+    if (!start_data) {
+        return {};
+    }
+    auto [start, next_parsing_at] = *start_data;
+
+    auto end_data = extractPosition(ast, next_parsing_at);
+    if (!end_data) {
+        return {};
+    }
+    auto [end, further_parsing_at] = *end_data;
+
+    return {{{start, end}, further_parsing_at}};
 }
 
 std::optional<ast::Rect> ASTExtractor::getNameLocation(const std::string &func_ast) const {
@@ -104,9 +125,14 @@ std::optional<ast::Rect> ASTExtractor::getNameLocation(const std::string &func_a
         return {};
 
     auto [id_ast, start_parsing_at] = *data;
-    auto [rect, _] = extractRect(id_ast, 0);
+    auto rect_data = extractRect(id_ast, 0);
 
-    return {rect};
+    if (rect_data) {
+        auto [rect, _] = *rect_data;
+        return {rect};
+    } else {
+        return {};
+    }
 }
 
 std::optional<ast::Rect> ASTExtractor::findEnclosingClass(const std::string &ast, const ast::Rect &func_rect) const {
@@ -115,24 +141,28 @@ std::optional<ast::Rect> ASTExtractor::findEnclosingClass(const std::string &ast
     std::optional<ast::Rect> last_enclosing_class;
 
     while ((start_parsing_at = ast.find(class_marker, start_parsing_at)) != std::string::npos) {
-        auto [rect, next_parsing_at] = extractRect(ast, start_parsing_at);
+        auto rect_data = extractRect(ast, start_parsing_at);
+        if (!rect_data) {
+            continue;
+        }
+        const auto [rect, next_parsing_at] = *rect_data;
+        start_parsing_at = next_parsing_at;
+
         const auto [class_start, class_end] = rect;
         const auto &start = std::get<0>(func_rect);
 
         if (start.line > class_start.line || (start.line == class_start.line && start.col >= class_start.col)) {
             if (start.line < class_end.line || (start.line == class_end.line && start.col <= class_end.col)) {
-                size_t name_start = ast.find("name:", next_parsing_at);
+                size_t name_start = ast.find("name:", start_parsing_at);
                 if (name_start != std::string::npos) {
                     size_t id_start = ast.find("(identifier", name_start);
                     if (id_start != std::string::npos) {
-                        next_parsing_at = id_start;
+                        start_parsing_at = id_start;
                         last_enclosing_class = {class_start, class_end};
                     }
                 }
             }
         }
-
-        start_parsing_at = next_parsing_at;
     }
 
     return last_enclosing_class;
