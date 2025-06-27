@@ -12,10 +12,10 @@ class ASTExtractor {
 public:
     // clang-format off
     std::optional<std::pair<std::string, size_t>>
-    ExtractClassDefenitionASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
+    ExtractClassDefinitionASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
 
     std::optional<std::pair<std::string, size_t>>
-    ExtractFunctionDefenitionASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
+    ExtractFunctionDefinitionASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
 
     std::optional<std::pair<std::string, size_t>>
     ExtractIdentifierASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
@@ -25,6 +25,12 @@ public:
 
     std::optional<std::pair<std::string, size_t>>
     ExtractCommentASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
+
+    std::optional<std::pair<std::string, size_t>>
+    ExtractDecoratedDefinitionASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
+
+    std::optional<std::pair<std::string, size_t>>
+    ExtractDecoratorASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
 
     std::optional<std::pair<std::string, size_t>>
     extractASTFragment(const std::string &ast, const std::string &marker_with_one_opened_brace, size_t start_parsing_at) const;

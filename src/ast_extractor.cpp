@@ -4,14 +4,26 @@
 namespace analyser::ast_extractor {
 
 std::optional<std::pair<std::string, size_t>>
-ASTExtractor::ExtractClassDefenitionASTFragment(const std::string &ast, size_t start_parsing_at) const {
-    const std::string marker = "(class_defenition";
+ASTExtractor::ExtractClassDefinitionASTFragment(const std::string &ast, size_t start_parsing_at) const {
+    const std::string marker = "(class_definition";
     return extractASTFragment(ast, marker, start_parsing_at);
 }
 
 std::optional<std::pair<std::string, size_t>>
-ASTExtractor::ExtractFunctionDefenitionASTFragment(const std::string &ast, size_t start_parsing_at) const {
-    const std::string marker = "(function_defenition";
+ASTExtractor::ExtractFunctionDefinitionASTFragment(const std::string &ast, size_t start_parsing_at) const {
+    const std::string marker = "(function_definition";
+    return extractASTFragment(ast, marker, start_parsing_at);
+}
+
+std::optional<std::pair<std::string, size_t>>
+ASTExtractor::ExtractDecoratedDefinitionASTFragment(const std::string &ast, size_t start_parsing_at) const {
+    const std::string marker = "(decorated_definition";
+    return extractASTFragment(ast, marker, start_parsing_at);
+}
+
+std::optional<std::pair<std::string, size_t>> ASTExtractor::ExtractDecoratorASTFragment(const std::string &ast,
+                                                                                        size_t start_parsing_at) const {
+    const std::string marker = "(decorator";
     return extractASTFragment(ast, marker, start_parsing_at);
 }
 

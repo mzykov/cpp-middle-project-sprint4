@@ -4,12 +4,11 @@ namespace analyser::function {
 
 std::vector<Function> FunctionExtractor::ProcessOneFile(const file::File &file) const {
     std::vector<Function> functions;
-    size_t start = 0;
-    const std::string marker = "(function_definition";
+    size_t start_parsing_at = 0;
     const std::string &ast = file.ast;
 
-    while (auto data = extractor_.extractASTFragment(ast, marker, start)) {
-        auto [func_ast, end] = *data;
+    while (auto data = extractor_.ExtractFunctionDefinitionASTFragment(ast, start_parsing_at)) {
+        auto [func_ast, continue_parsing_at] = *data;
         auto name_loc = extractor_.getNameLocation(func_ast);
 
         if (name_loc) {
@@ -23,7 +22,7 @@ std::vector<Function> FunctionExtractor::ProcessOneFile(const file::File &file) 
             functions.emplace_back(file.name, class_name, func_name, func_ast);
         }
 
-        start = end;
+        start_parsing_at = continue_parsing_at;
     }
 
     return functions;
