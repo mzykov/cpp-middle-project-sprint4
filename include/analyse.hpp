@@ -1,21 +1,4 @@
-#include <unistd.h>
-
-#include <algorithm>
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iomanip>
-#include <iostream>
 #include <print>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
 
 #include "file.hpp"
 #include "function.hpp"
@@ -23,9 +6,6 @@
 #include "metric_accumulator.hpp"
 
 namespace analyser {
-
-namespace rv = std::ranges::views;
-namespace rs = std::ranges;
 
 auto AnalyseFunctions(const std::vector<std::string> &files, const metric::MetricExtractor &metric_extractor) {
     std::vector<std::pair<function::Function, metric::MetricResults>> res;

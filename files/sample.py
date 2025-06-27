@@ -15,6 +15,11 @@ class AdvancedProcessor(SimpleProcessor):
     
         return [x + self.offset for x in processed]
 
+    @log_execution(log_level=LogLevel.DEBUG)
+
+    @best_decor(x=y)
+
+
     def __call__(self, data: List[float]) -> List[float]:
         """Поддержка вызова как функции"""
         return self.process(data)
