@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <string>
+#include <unordered_set>
 
 #include "ast.hpp"
 
@@ -33,6 +34,9 @@ public:
 
     std::optional<std::pair<ast::Rect, size_t>>
     extractRect(const std::string &ast, size_t start_parsing_at) const;
+
+    std::unordered_set<size_t>
+    extractAllCommentLineNumbers(const std::string &ast, size_t start_parsing_at = 0) const;
 
     std::optional<ast::Rect> findEnclosingClass(const std::string &full_ast, const ast::Rect &func_rect) const;
     std::optional<ast::Rect> getNameLocation(const std::string &func_ast) const;

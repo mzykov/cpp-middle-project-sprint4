@@ -33,6 +33,31 @@ std::optional<std::pair<std::string, size_t>> ASTExtractor::ExtractCommentASTFra
     return extractASTFragment(ast, marker, start_parsing_at);
 }
 
+std::unordered_set<size_t> ASTExtractor::extractAllCommentLineNumbers(const std::string &ast,
+                                                                      size_t start_parsing_at) const {
+    std::unordered_set<size_t> res;
+
+    while (auto comment_data = ExtractCommentASTFragment(ast, start_parsing_at)) {
+        auto [comment_ast, continue_parsing_at] = *comment_data;
+        auto rect_data = extractRect(comment_ast, 0);
+
+        if (!rect_data) {
+            break;
+        }
+
+        auto [rect, _] = *rect_data;
+        auto comment_line = ast::LinesInterval{rect};
+
+        if (comment_line.IsOneLine()) {
+            res.insert(comment_line.start_line);
+        }
+
+        start_parsing_at = continue_parsing_at;
+    }
+
+    return res;
+}
+
 size_t ASTExtractor::CountFirstLevelASTNodes(const std::string &ast) const { return CountNthLevelASTNodes(ast, 1); }
 
 size_t ASTExtractor::CountNthLevelASTNodes(const std::string &ast_begins_with_one_opened_brace, size_t level) const {

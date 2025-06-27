@@ -35,7 +35,21 @@ target_link_libraries(${target}
         range-v3::range-v3
 )
 
-include(CTest)
+#
+# Тесты
+#
+
+# Рекурсивно ищем все используемые в тестах .cpp файлы
+file(GLOB TEST_SRC_FILES "${CMAKE_SOURCE_DIR}/tests/*.cpp")
+
+add_executable(${PROJECT_NAME}_tests "${TEST_SRC_FILES}")
+target_link_libraries(${PROJECT_NAME}_tests PRIVATE GTest::GTest GTest::Main)
+target_include_directories(${PROJECT_NAME}_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# Включаем тестирование
 enable_testing()
+add_test(NAME analyser_tests COMMAND ${PROJECT_NAME}_tests)
+
+include(CTest)
 
 add_subdirectory(src)

@@ -8,7 +8,11 @@ class AdvancedProcessor(SimpleProcessor):
     @log_execution(log_level=LogLevel.DEBUG)
     def process(self, data: List[Union[int, float]]) -> List[float]:
         """Расширенная обработка данных"""
+    
+    
         processed = super().process(data)
+    
+    
         return [x + self.offset for x in processed]
 
     def __call__(self, data: List[float]) -> List[float]:
