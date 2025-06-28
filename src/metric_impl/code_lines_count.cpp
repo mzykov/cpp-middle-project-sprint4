@@ -1,8 +1,6 @@
 #include <stack>
 #include <unordered_set>
 
-#include <print>
-
 #include "metric_impl/code_lines_count.hpp"
 
 namespace analyser::metric::metric_impl {

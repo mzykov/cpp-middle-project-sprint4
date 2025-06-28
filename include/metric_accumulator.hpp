@@ -1,27 +1,8 @@
 #pragma once
 
-#include <unistd.h>
-
-#include <algorithm>
-#include <any>
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
+#include <unordered_map>
 
 #include "metric.hpp"
-
-namespace rv = std::ranges::views;
-namespace rs = std::ranges;
 
 namespace analyser::metric_accumulator {
 
@@ -38,19 +19,21 @@ protected:
 struct MetricsAccumulator {
     template <typename Accumulator>
     void RegisterAccumulator(const std::string &metric_name, std::unique_ptr<Accumulator> acc) {
-        // здесь ваш код
+        accumulators_[metric_name] = std::move(acc);
     }
 
     template <typename Accumulator>
     const Accumulator &GetFinalizedAccumulator(const std::string &metric_name) const {
-        // здесь ваш код
+        auto acc = accumulators_.at(metric_name);
+        acc->Finalize();
+        return *acc;
     }
 
     void AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const;
     void ResetAccumulators();
 
 private:
-    std::unordered_map<std::string, std::shared_ptr<IAccumulator>> accumulators;
+    std::unordered_map<std::string, std::shared_ptr<IAccumulator>> accumulators_;
 };
 
 }  // namespace analyser::metric_accumulator
