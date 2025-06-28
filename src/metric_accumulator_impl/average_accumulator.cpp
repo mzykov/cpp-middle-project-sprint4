@@ -2,6 +2,10 @@
 
 namespace analyser::metric_accumulator::metric_accumulator_impl {
 
+void AverageAccumulator::Accumulate(const metric::MetricResult &metric_result) {}
+
+void AverageAccumulator::Finalize() {}
+
 void AverageAccumulator::Reset() {
     sum_ = 0;
     count_ = 0;

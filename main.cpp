@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
     analyser::metric::MetricExtractor metric_extractor;
     {
         using namespace analyser::metric;
+
         metric_extractor.RegisterMetric(
             std::make_unique<metric_impl::CodeLinesCountMetric>()
         );
@@ -32,7 +33,19 @@ int main(int argc, char *argv[]) {
     analyser::PrintAnalyseResults(analyseResults);
 
     analyser::metric_accumulator::MetricsAccumulator accumulator;
-    // зарегистрируйте аккумуляторы метрик в accumulator
+    {
+        using namespace analyser::metric_accumulator;
+
+        accumulator.RegisterAccumulator(
+            "AverageAccumulator", std::make_unique<metric_accumulator_impl::AverageAccumulator>()
+        );
+        accumulator.RegisterAccumulator(
+            "CategoricalAccumulator", std::make_unique<metric_accumulator_impl::CategoricalAccumulator>()
+        );
+        accumulator.RegisterAccumulator(
+            "SumAverageAccumulator", std::make_unique<metric_accumulator_impl::SumAverageAccumulator>()
+        );
+    }
 
     // запустите analyser::SplitByFiles
     // запустите analyser::AccumulateFunctionAnalysis для каждого подмножества результатов метрик
