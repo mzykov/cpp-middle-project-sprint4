@@ -13,7 +13,7 @@ struct IAccumulator {
     virtual ~IAccumulator() = default;
 
 protected:
-    bool is_finalized = false;
+    bool is_finalized_ = false;
 };
 
 struct MetricsAccumulator {
@@ -29,7 +29,7 @@ struct MetricsAccumulator {
         return *acc;
     }
 
-    void AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const;
+    void AccumulateNextFunctionResults(const metric::MetricResults &metric_results) const;
     void ResetAccumulators();
 
 private:

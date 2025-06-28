@@ -1,24 +1,12 @@
 #include "metric_accumulator_impl/average_accumulator.hpp"
 
-#include <unistd.h>
-
-#include <algorithm>
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
-
 namespace analyser::metric_accumulator::metric_accumulator_impl {
 
-// здесь ваш код
+void AverageAccumulator::Reset() {
+    sum_ = 0;
+    count_ = 0;
+    average_ = 0.0;
+    is_finalized_ = false;
+}
 
 }  // namespace analyser::metric_accumulator::metric_accumulator_impl
