@@ -24,16 +24,16 @@ auto AnalyseFunctions(const std::vector<std::string> &files, const metric::Metri
 }
 
 void PrintAnalyseResults(const auto &analysis) {
-    for (const auto &p : analysis) {
-        using namespace std::string_literals;
+    using namespace std::string_literals;
 
+    for (const auto &p : analysis) {
         const auto &[func, results] = p;
         std::string headline = func.filename;
         if (func.class_name) {
             headline += "::"s + *func.class_name;
         }
-        headline += "::"s + func.name + "\n";
-        std::print("\n{}", headline);
+        headline += "::"s + func.name;
+        std::print("\n{}\n", headline);
 
         std::for_each(results.cbegin(), results.cend(),
                       [](const auto &m) { std::print("\t{}: {}\n", m.metric_name, m.metric_value); });
@@ -44,8 +44,26 @@ auto SplitByClasses(const auto &analysis) {
     // здесь ваш код
 }
 
+void PrintAccumulatedAnalysisForClass(const auto &analysis) {
+    for (const auto &p : analysis) {
+        const auto &[class_name, results] = p;
+        std::print("\nAccumulated Analysis for сlass {}\n", class_name);
+        std::for_each(results.cbegin(), results.cend(),
+                      [](const auto &m) { std::print("\t{}: {}\n", m.metric_name, m.metric_value); });
+    }
+}
+
 auto SplitByFiles(const auto &analysis) {
     // здесь ваш код
+}
+
+void PrintAccumulatedAnalysisForFile(const auto &analysis) {
+    for (const auto &p : analysis) {
+        const auto &[file_name, results] = p;
+        std::print("\nAccumulated Analysis for file {}\n", file_name);
+        std::for_each(results.cbegin(), results.cend(),
+                      [](const auto &m) { std::print("\t{}: {}\n", m.metric_name, m.metric_value); });
+    }
 }
 
 void AccumulateFunctionAnalysis(const auto &analysis, const metric_accumulator::MetricsAccumulator &accumulator) {

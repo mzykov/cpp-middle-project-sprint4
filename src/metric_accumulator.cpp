@@ -3,7 +3,11 @@
 namespace analyser::metric_accumulator {
 
 void MetricsAccumulator::AccumulateNextFunctionResults(const metric::MetricResults &metric_results) const {
-    // здесь ваш код
+    for (auto &[_, acc_ptr] : accumulators_) {
+        for (const auto metric_result : metric_results) {
+            acc_ptr->Accumulate(metric_result);
+        }
+    }
 }
 
 void MetricsAccumulator::ResetAccumulators() {
