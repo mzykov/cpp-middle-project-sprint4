@@ -8,9 +8,9 @@
 namespace analyser::function {
 
 struct Function {
-    std::string filename;
+    std::string file_name;
     std::optional<std::string> class_name;
-    std::string name;
+    std::string func_name;
     std::string ast;
 };
 

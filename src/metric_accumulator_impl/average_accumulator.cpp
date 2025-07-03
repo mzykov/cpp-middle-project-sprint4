@@ -2,9 +2,17 @@
 
 namespace analyser::metric_accumulator::metric_accumulator_impl {
 
-void AverageAccumulator::Accumulate(const metric::MetricResult &metric_result) {}
+void AverageAccumulator::Accumulate(const metric::MetricResult &metric_result) {
+    if (is_finalized_)
+        return;
+    sum_ += metric_result.metric_value;
+    ++count_;
+}
 
-void AverageAccumulator::Finalize() {}
+void AverageAccumulator::Finalize() {
+    average_ = static_cast<double>(sum_) / static_cast<double>(count_);
+    is_finalized_ = true;
+}
 
 void AverageAccumulator::Reset() {
     sum_ = 0;
@@ -12,5 +20,7 @@ void AverageAccumulator::Reset() {
     average_ = 0.0;
     is_finalized_ = false;
 }
+
+double AverageAccumulator::Get() const { return average_; }
 
 }  // namespace analyser::metric_accumulator::metric_accumulator_impl

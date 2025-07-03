@@ -13,13 +13,13 @@ namespace analyser::file {
 namespace rv = std::ranges::views;
 namespace rs = std::ranges;
 
-File::File(const std::string &filename) : name{filename} {
+File::File(const std::string &file_name) : name{file_name} {
     std::ifstream file(name);
 
     if (!file.is_open()) {
-        throw std::invalid_argument("Can't open file " + filename);
+        throw std::invalid_argument("Can't open file " + file_name);
     }
-    ast = GetAst(filename);
+    ast = GetAst(file_name);
     source_lines = ReadSourceFile(file);
 }
 
@@ -32,8 +32,8 @@ std::vector<std::string> File::ReadSourceFile(std::ifstream &file) {
     return lines;
 }
 
-std::string File::GetAst(const std::string &filename) try {
-    std::string full_cmd = File::command_prefix + filename + " 2>&1";
+std::string File::GetAst(const std::string &file_name) try {
+    std::string full_cmd = File::command_prefix + file_name + " 2>&1";
     std::string result;
     std::array<char, 256> buffer;
 
@@ -65,7 +65,7 @@ std::string File::GetAst(const std::string &filename) try {
 
     return result;
 } catch (const std::exception &e) {
-    throw std::runtime_error("Error while getting ast from " + filename);
+    throw std::runtime_error("Error while getting ast from " + file_name);
 }
 
 }  // namespace analyser::file

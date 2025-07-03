@@ -47,16 +47,27 @@ int main(int argc, char *argv[]) {
         );
     }
 
-    // запустите analyser::SplitByFiles
-    // запустите analyser::AccumulateFunctionAnalysis для каждого подмножества результатов метрик
-    // выведете результаты на консоль
+    std::ranges::for_each(analyser::SplitByFiles(analyseResults),
+        [&accumulator](const auto &p) {
+            const auto &[file_name, chunk] = p;
+            accumulator.ResetAccumulators();
+            analyser::AccumulateFunctionAnalysis(chunk, accumulator);
+            analyser::PrintAccumulatedAnalysisForFile(file_name, accumulator);
+        }
+    );
 
-    // запустите analyser::SplitByClasses
-    // запустите analyser::AccumulateFunctionAnalysis для каждого подмножества результатов метрик
-    // выведете результаты на консоль
+    std::ranges::for_each(analyser::SplitByClasses(analyseResults),
+        [&accumulator](const auto &p) {
+            const auto &[class_name, chunk] = p;
+            accumulator.ResetAccumulators();
+            analyser::AccumulateFunctionAnalysis(chunk, accumulator);
+            analyser::PrintAccumulatedAnalysisForClass(class_name, accumulator);
+        }
+    );
 
-    // запустите analyser::AccumulateFunctionAnalysis для всех результатов метрик
-    // выведете результаты на консоль
+    accumulator.ResetAccumulators();
+    analyser::AccumulateFunctionAnalysis(analyseResults, accumulator);
+    analyser::PrintAccumulatedAnalysisTotal(accumulator);
 
     return 0;
 }

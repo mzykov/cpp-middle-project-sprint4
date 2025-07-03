@@ -28,7 +28,7 @@ struct MetricsAccumulator {
         return *acc;
     }
 
-    void AccumulateNextFunctionResults(const metric::MetricResults &metric_results) const;
+    void AccumulateNextResults(const metric::MetricResults &metric_results) const;
     void ResetAccumulators();
 
 private:
