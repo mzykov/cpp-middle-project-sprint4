@@ -23,12 +23,15 @@ include_directories(
 set(target analyser)
 
 add_executable(${target} main.cpp)
-target_include_directories(${target} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+
+target_include_directories(${target}
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries(${target} 
     PRIVATE
+        ast_extractor
         metric_accumulator
         metric
         cmd_options
@@ -43,12 +46,25 @@ target_link_libraries(${target}
 file(GLOB TEST_SRC_FILES "${CMAKE_SOURCE_DIR}/tests/*.cpp")
 
 add_executable(${PROJECT_NAME}_tests "${TEST_SRC_FILES}")
-target_link_libraries(${PROJECT_NAME}_tests PRIVATE GTest::GTest GTest::Main)
-target_include_directories(${PROJECT_NAME}_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_link_libraries(${PROJECT_NAME}_tests
+    PRIVATE
+        ast_extractor
+        GTest::GTest
+        GTest::Main
+)
+
+target_include_directories(${PROJECT_NAME}_tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
 # Включаем тестирование
 enable_testing()
-add_test(NAME analyser_tests COMMAND ${PROJECT_NAME}_tests)
+add_test(
+    NAME analyser_tests
+    COMMAND ${PROJECT_NAME}_tests
+)
 
 include(CTest)
 

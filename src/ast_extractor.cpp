@@ -117,7 +117,7 @@ ASTExtractor::extractASTFragment(const std::string &ast, const std::string &mark
     return {{ast.substr(marker_found_at, end - marker_found_at), end}};
 }
 
-std::optional<std::pair<ast::Position, size_t>> ASTExtractor::extractPosition(const std::string &ast,
+std::optional<std::pair<ast::Position, size_t>> ASTExtractor::extractPosition(std::string_view ast,
                                                                               size_t start_parsing_at) const {
     size_t coord_start = ast.find('[', start_parsing_at);
     if (coord_start == std::string::npos) {
@@ -129,7 +129,7 @@ std::optional<std::pair<ast::Position, size_t>> ASTExtractor::extractPosition(co
         return {};
     }
 
-    std::string coords = ast.substr(coord_start + 1, coord_end - coord_start - 1);
+    auto coords = ast.substr(coord_start + 1, coord_end - coord_start - 1);
     size_t comma = coords.find(',');
     if (comma == std::string::npos) {
         return {};
@@ -138,15 +138,15 @@ std::optional<std::pair<ast::Position, size_t>> ASTExtractor::extractPosition(co
     return {{ast::Position{ToInt(coords.substr(0, comma)), ToInt(coords.substr(comma + 2))}, coord_end}};
 }
 
-std::optional<std::pair<ast::Rect, size_t>> ASTExtractor::extractRect(const std::string &ast,
+std::optional<std::pair<ast::Rect, size_t>> ASTExtractor::extractRect(std::string_view ast,
                                                                       size_t start_parsing_at) const {
     auto start_data = extractPosition(ast, start_parsing_at);
     if (!start_data) {
         return {};
     }
-    auto [start, next_parsing_at] = *start_data;
+    auto [start, continue_parsing_at] = *start_data;
 
-    auto end_data = extractPosition(ast, next_parsing_at);
+    auto end_data = extractPosition(ast, continue_parsing_at);
     if (!end_data) {
         return {};
     }

@@ -2,6 +2,7 @@
 add_custom_target(unit_tests)
 
 add_library(ast_extractor
+    ast.cpp
     ast_extractor.cpp
 )
 

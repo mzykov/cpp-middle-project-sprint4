@@ -36,10 +36,10 @@ public:
     extractASTFragment(const std::string &ast, const std::string &marker_with_one_opened_brace, size_t start_parsing_at) const;
 
     std::optional<std::pair<ast::Position, size_t>>
-    extractPosition(const std::string &ast, size_t start_parsing_at) const;
+    extractPosition(std::string_view ast, size_t start_parsing_at) const;
 
     std::optional<std::pair<ast::Rect, size_t>>
-    extractRect(const std::string &ast, size_t start_parsing_at) const;
+    extractRect(std::string_view ast, size_t start_parsing_at) const;
 
     std::unordered_set<size_t>
     extractAllCommentLineNumbers(const std::string &ast, size_t start_parsing_at = 0) const;
