@@ -51,13 +51,14 @@ std::string FunctionExtractor::getClassNameFromSource(const ast::Rect &class_rec
     if (start.line >= lines.size())
         return "unknown";
 
-    const std::string &class_line = lines[start.line];
+    std::string_view class_line{lines[start.line]};
+    std::string_view class_kw = "class";
 
-    size_t class_pos = class_line.find("class");
+    size_t class_pos = class_line.find(class_kw);
     if (class_pos == std::string::npos)
         return "unknown";
 
-    size_t name_start = class_line.find_first_not_of(" \t", class_pos + 5);
+    size_t name_start = class_line.find_first_not_of(" \t", class_pos + class_kw.length());
     if (name_start == std::string::npos)
         return "unknown";
 
@@ -65,7 +66,7 @@ std::string FunctionExtractor::getClassNameFromSource(const ast::Rect &class_rec
     if (name_end == std::string::npos)
         name_end = class_line.length();
 
-    return class_line.substr(name_start, name_end - name_start);
+    return std::string{class_line.substr(name_start, name_end - name_start)};
 }
 
 }  // namespace analyser::function

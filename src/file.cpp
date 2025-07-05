@@ -4,14 +4,10 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <ranges>
 #include <string>
 #include <vector>
 
 namespace analyser::file {
-
-namespace rv = std::ranges::views;
-namespace rs = std::ranges;
 
 File::File(const std::string &file_name) : name{file_name} {
     std::ifstream file(name);
