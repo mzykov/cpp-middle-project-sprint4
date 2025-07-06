@@ -2,20 +2,19 @@
 
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace analyser::file {
 
-File::File(const std::string &file_name) : name{file_name} {
+File::File(std::string_view file_name) : name{file_name} {
     std::ifstream file(name);
 
     if (!file.is_open()) {
-        throw std::invalid_argument("Can't open file " + file_name);
+        throw std::invalid_argument("Can't open file " + name);
     }
-    ast = GetAst(file_name);
+    ast = GetAst();
     source_lines = ReadSourceFile(file);
 }
 
@@ -28,8 +27,10 @@ std::vector<std::string> File::ReadSourceFile(std::ifstream &file) {
     return lines;
 }
 
-std::string File::GetAst(const std::string &file_name) try {
-    std::string full_cmd = File::command_prefix + file_name + " 2>&1";
+std::string File::GetAst() try {
+    const std::string tree_sitter_cmd = "tree-sitter parse --config-path ~/.config/tree-sitter/config.json ";
+    auto full_cmd = tree_sitter_cmd + name + " 2>&1";
+
     std::string result;
     std::array<char, 256> buffer;
 
@@ -51,7 +52,7 @@ std::string File::GetAst(const std::string &file_name) try {
 
     FILE *raw_pipe = popen(full_cmd.c_str(), "r");
     if (!raw_pipe) {
-        throw std::runtime_error("Failed to execute command: " + std::string(std::strerror(errno)));
+        throw std::runtime_error("Failed to execute command: " + std::string{std::strerror(errno)});
     }
     PipePtr pipe(raw_pipe);
 
@@ -61,7 +62,7 @@ std::string File::GetAst(const std::string &file_name) try {
 
     return result;
 } catch (const std::exception &e) {
-    throw std::runtime_error("Error while getting ast from " + file_name);
+    throw std::runtime_error("Error while getting ast from " + name);
 }
 
 }  // namespace analyser::file
