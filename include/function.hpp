@@ -21,8 +21,7 @@ public:
 private:
     ast_extractor::ASTExtractor extractor_;
 
-    std::string getClassNameFromSource(const ast::Rect &class_rect, const std::vector<std::string> &lines) const;
-    std::string getFunctionNameFromSource(const ast::Rect &func_rect, const std::vector<std::string> &lines) const;
+    std::string getNameFromSource(const ast::Rect &rect, const std::vector<std::string> &lines) const;
 };
 
 }  // namespace analyser::function

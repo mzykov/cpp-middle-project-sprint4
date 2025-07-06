@@ -12,28 +12,28 @@ class ASTExtractor {
 public:
     // clang-format off
     std::optional<std::pair<std::string, size_t>>
-    ExtractClassDefinitionASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
+    ExtractClassDefinitionASTFragment(std::string_view ast, size_t start_parsing_at = 0) const;
 
     std::optional<std::pair<std::string, size_t>>
-    ExtractFunctionDefinitionASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
+    ExtractFunctionDefinitionASTFragment(std::string_view ast, size_t start_parsing_at = 0) const;
 
     std::optional<std::pair<std::string, size_t>>
-    ExtractIdentifierASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
+    ExtractIdentifierASTFragment(std::string_view ast, size_t start_parsing_at = 0) const;
 
     std::optional<std::pair<std::string, size_t>>
-    ExtractParametersASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
+    ExtractParametersASTFragment(std::string_view ast, size_t start_parsing_at = 0) const;
 
     std::optional<std::pair<std::string, size_t>>
-    ExtractCommentASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
+    ExtractCommentASTFragment(std::string_view ast, size_t start_parsing_at = 0) const;
 
     std::optional<std::pair<std::string, size_t>>
-    ExtractDecoratedDefinitionASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
+    ExtractDecoratedDefinitionASTFragment(std::string_view ast, size_t start_parsing_at = 0) const;
 
     std::optional<std::pair<std::string, size_t>>
-    ExtractDecoratorASTFragment(const std::string &ast, size_t start_parsing_at = 0) const;
+    ExtractDecoratorASTFragment(std::string_view ast, size_t start_parsing_at = 0) const;
 
     std::optional<std::pair<std::string, size_t>>
-    extractASTFragment(const std::string &ast, const std::string &marker_with_one_opened_brace, size_t start_parsing_at) const;
+    extractASTFragment(std::string_view ast, std::string_view marker_started_with_one_opened_brace, size_t start_parsing_at) const;
 
     std::optional<std::pair<ast::Position, size_t>>
     extractPosition(std::string_view ast, size_t start_parsing_at) const;
@@ -42,13 +42,13 @@ public:
     extractRect(std::string_view ast, size_t start_parsing_at) const;
 
     std::unordered_set<size_t>
-    extractAllCommentLineNumbers(const std::string &ast, size_t start_parsing_at = 0) const;
+    extractAllCommentLineNumbers(std::string_view ast, size_t start_parsing_at = 0) const;
 
-    std::optional<ast::Rect> findEnclosingClass(const std::string &full_ast, const ast::Rect &func_rect) const;
-    std::optional<ast::Rect> getNameLocation(const std::string &func_ast) const;
+    std::optional<ast::Rect> findEnclosingClass(std::string_view full_ast, const ast::Rect &func_rect, size_t start_parsing_at = 0) const;
+    std::optional<ast::Rect> getNameLocation(std::string_view func_ast) const;
 
-    size_t CountFirstLevelASTNodes(const std::string &ast) const;
-    size_t CountNthLevelASTNodes(const std::string &ast, size_t level) const;
+    size_t CountFirstLevelASTNodes(std::string_view ast) const;
+    size_t CountNthLevelASTNodes(std::string_view ast, size_t level) const;
     // clang-format on
 private:
 };
