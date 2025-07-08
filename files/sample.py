@@ -8,11 +8,15 @@ class AdvancedProcessor(SimpleProcessor):
     @log_execution(log_level=LogLevel.DEBUG)
     def process(self, data: List[Union[int, float]]) -> List[float]:
         """Расширенная обработка данных"""
-    
-    
+        
+        def nested_def():
+            """ QQQ WWW """
+            print('It is pretty nested function definition!')
+
         processed = super().process(data)
-    
-    
+
+        
+
         return [x + self.offset for x in processed]
 
     @log_execution(log_level=LogLevel.DEBUG)

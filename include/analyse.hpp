@@ -9,10 +9,10 @@
 
 namespace analyser {
 
-auto AnalyseFunctions(const std::vector<std::string> &files, const metric::MetricExtractor &metric_extractor) {
+auto AnalyseFunctions(const std::vector<std::string> &file_names, const metric::MetricExtractor &metric_extractor) {
     std::vector<std::pair<function::Function, metric::MetricResults>> res;
 
-    std::ranges::for_each(files, [&metric_extractor, &res](const std::string &file_name) {
+    std::ranges::for_each(file_names, [&metric_extractor, &res](std::string_view file_name) {
         const function::FunctionExtractor extractor;
         const auto funcs = extractor.ProcessOneFile(file::File{file_name});
 

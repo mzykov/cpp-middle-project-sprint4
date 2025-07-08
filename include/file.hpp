@@ -14,7 +14,7 @@ struct File {
 
 private:
     std::vector<std::string> ReadSourceFile(std::ifstream &file);
-    std::string GetAst();
+    std::string ReadAST();
 };
 
 }  // namespace analyser::file

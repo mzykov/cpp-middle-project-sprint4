@@ -94,20 +94,20 @@ size_t ASTExtractor::CountNthLevelASTNodes(std::string_view ast, size_t level) c
 std::optional<std::pair<std::string, size_t>>
 ASTExtractor::extractASTFragment(std::string_view ast, std::string_view marker_started_with_one_opened_brace,
                                  size_t start_parsing_at) const {
-    auto marker_found_at = ast.find(marker_started_with_one_opened_brace, start_parsing_at);
+    const auto marker_found_at = ast.find(marker_started_with_one_opened_brace, start_parsing_at);
 
     if (marker_found_at == std::string::npos) {
         return {};
     }
 
-    size_t open_braces = 1;
+    size_t opened_braces = 1;
     size_t end = marker_found_at + marker_started_with_one_opened_brace.length();
 
-    while (end < ast.length() && open_braces > 0) {
+    while (end < ast.length() && opened_braces > 0) {
         if (ast[end] == '(') {
-            open_braces++;
+            opened_braces++;
         } else if (ast[end] == ')') {
-            open_braces--;
+            opened_braces--;
         }
         end++;
     }

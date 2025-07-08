@@ -14,7 +14,8 @@ File::File(std::string_view file_name) : name{file_name} {
     if (!file.is_open()) {
         throw std::invalid_argument("Can't open file " + name);
     }
-    ast = GetAst();
+
+    ast = ReadAST();
     source_lines = ReadSourceFile(file);
 }
 
@@ -27,7 +28,7 @@ std::vector<std::string> File::ReadSourceFile(std::ifstream &file) {
     return lines;
 }
 
-std::string File::GetAst() try {
+std::string File::ReadAST() try {
     const std::string tree_sitter_cmd = "tree-sitter parse --config-path ~/.config/tree-sitter/config.json ";
     auto full_cmd = tree_sitter_cmd + name + " 2>&1";
 

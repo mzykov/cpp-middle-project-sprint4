@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "ast_extractor.hpp"
 #include "file.hpp"
 
@@ -20,6 +18,9 @@ public:
 
 private:
     ast_extractor::ASTExtractor extractor_;
+
+    std::optional<std::pair<Function, size_t>> processASTFragment(const file::File &file, std::string_view ast,
+                                                                  size_t start_parsing_at) const;
 
     std::string getNameFromSource(const ast::Rect &rect, const std::vector<std::string> &lines) const;
 };
