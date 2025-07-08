@@ -9,6 +9,7 @@
 
 namespace analyser {
 
+[[nodiscard]]
 auto AnalyseFunctions(const std::vector<std::string> &file_names, const metric::MetricExtractor &metric_extractor) {
     std::vector<std::pair<function::Function, metric::MetricResults>> res;
 

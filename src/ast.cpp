@@ -25,8 +25,8 @@ size_t buildASTreeRecursive(std::string_view s, ASTreeNode *parent_node, size_t 
         return ++start_parsing_at;
     }
 
-    const auto &[node_name, continue_parsing_at] = extractNodeName(s, start_parsing_at + 1);
-    // auto [node_name, continue_parsing_at] = extractNodeName(s, start_parsing_at);
+    constexpr std::string_view opened_brace = "(";
+    const auto &[node_name, continue_parsing_at] = extractNodeName(s, start_parsing_at + opened_brace.length());
 
     parent_node->children.emplace_back(std::make_unique<ASTreeNode>(node_name));
 

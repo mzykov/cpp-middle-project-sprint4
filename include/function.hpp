@@ -10,6 +10,7 @@ struct Function {
     std::optional<std::string> class_name;
     std::string func_name;
     std::string ast;
+    bool is_decorated = false;
 };
 
 class FunctionExtractor {

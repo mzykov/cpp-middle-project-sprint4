@@ -1,6 +1,6 @@
-#include <queue>
-
 #include "function.hpp"
+
+#include <queue>
 
 namespace analyser::function {
 
@@ -9,7 +9,7 @@ std::vector<Function> FunctionExtractor::ProcessOneFile(const file::File &file) 
     std::vector<Function> result;
     std::queue<std::pair<std::string, size_t>> q;
 
-    const size_t start_parsing_at = 0;
+    constexpr size_t start_parsing_at = 0;
     q.emplace(file.ast, start_parsing_at);
 
     while (!q.empty()) {
@@ -19,11 +19,10 @@ std::vector<Function> FunctionExtractor::ProcessOneFile(const file::File &file) 
         const auto data = processASTFragment(file, ast_fragment, continue_parsing_at);
 
         if (data) {
-            constexpr std::string_view opened_brace = "(";
             const auto &[func, further_parsing_at] = *data;
             result.push_back(func);
             q.emplace(ast_fragment, further_parsing_at);
-            q.emplace(func.ast, start_parsing_at + opened_brace.length());
+            q.emplace(func.ast, extractor_.findPositionAfterFunctionDefinition(func.ast));
         }
     }
 
@@ -46,14 +45,32 @@ FunctionExtractor::processASTFragment(const file::File &file, std::string_view a
     }
 
     const auto func_name = getNameFromSource(*name_loc, file.source_lines);
-    std::optional<std::string> class_name;
 
+    std::optional<std::string> class_name;
     if (const auto class_loc = extractor_.findEnclosingClass(file.ast, *name_loc)) {
         class_name = getNameFromSource(*class_loc, file.source_lines);
     }
 
-    const auto func =
-        Function{.file_name = file.name, .class_name = class_name, .func_name = func_name, .ast = func_ast};
+    bool is_decorated = false;
+    const auto decorated_ast = extractor_.findEnclosingDecoratorAST(file.ast, *name_loc);
+
+    if (decorated_ast) {
+        const auto maybe_nested_name_loc = extractor_.firstFunctionDefinitionAfterDecorator(*decorated_ast);
+
+        if (maybe_nested_name_loc && *maybe_nested_name_loc == *name_loc) {
+            is_decorated = true;
+        }
+    }
+
+    // clang-format off
+    const auto func = Function{
+        .file_name    = file.name,
+        .class_name   = class_name,
+        .func_name    = func_name,
+        .ast          = is_decorated ? *decorated_ast : func_ast,
+        .is_decorated = is_decorated,
+    };
+    // clang-format on
 
     return {{func, continue_parsing_at}};
 }

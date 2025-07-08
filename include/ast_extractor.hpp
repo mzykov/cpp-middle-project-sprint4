@@ -47,6 +47,11 @@ public:
     std::optional<ast::Rect> findEnclosingClass(std::string_view full_ast, const ast::Rect &func_rect, size_t start_parsing_at = 0) const;
     std::optional<ast::Rect> getNameLocation(std::string_view func_ast) const;
 
+    std::optional<std::string> findEnclosingDecoratorAST(std::string_view full_ast, const ast::Rect &func_rect, size_t start_parsing_at = 0) const;
+
+    size_t findPositionAfterFunctionDefinition(std::string_view ast, size_t start_parsing_at = 0) const;
+    std::optional<ast::Rect> firstFunctionDefinitionAfterDecorator(std::string_view decorated_ast) const;
+
     size_t CountFirstLevelASTNodes(std::string_view ast) const;
     size_t CountNthLevelASTNodes(std::string_view ast, size_t level) const;
     // clang-format on

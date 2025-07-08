@@ -11,6 +11,7 @@ struct Position {
     using ValueType = size_t;
     ValueType line = 0;
     ValueType col = 0;
+    auto operator<=>(const Position &) const = default;
 };
 
 using Rect = std::pair<Position, Position>;

@@ -1,3 +1,5 @@
+#include <queue>
+
 #include "ast_extractor.hpp"
 #include "utils.hpp"
 
@@ -49,16 +51,16 @@ std::unordered_set<size_t> ASTExtractor::extractAllCommentLineNumbers(std::strin
                                                                       size_t start_parsing_at) const {
     std::unordered_set<size_t> res;
 
-    while (auto comment_data = ExtractCommentASTFragment(ast, start_parsing_at)) {
-        auto [comment_ast, continue_parsing_at] = *comment_data;
-        auto rect_data = extractRect(comment_ast, 0);
+    while (const auto comment_data = ExtractCommentASTFragment(ast, start_parsing_at)) {
+        const auto [comment_ast, continue_parsing_at] = *comment_data;
+        const auto rect_data = extractRect(comment_ast, 0);
 
         if (!rect_data) {
             break;
         }
 
-        auto [rect, _] = *rect_data;
-        auto comment_line = ast::LinesInterval{rect};
+        const auto [rect, _] = *rect_data;
+        const auto comment_line = ast::LinesInterval{rect};
 
         if (comment_line.IsOneLine()) {
             res.insert(comment_line.start_line);
@@ -73,8 +75,7 @@ std::unordered_set<size_t> ASTExtractor::extractAllCommentLineNumbers(std::strin
 size_t ASTExtractor::CountFirstLevelASTNodes(std::string_view ast) const { return CountNthLevelASTNodes(ast, 1); }
 
 size_t ASTExtractor::CountNthLevelASTNodes(std::string_view ast, size_t level) const {
-    size_t open_braces = 1, end = 1;
-    size_t res = 0;
+    size_t res = 0, open_braces = 1, end = 1;
 
     while (end < ast.length() && open_braces > 0) {
         if (ast[end] == '(') {
@@ -117,18 +118,18 @@ ASTExtractor::extractASTFragment(std::string_view ast, std::string_view marker_s
 
 std::optional<std::pair<ast::Position, size_t>> ASTExtractor::extractPosition(std::string_view ast,
                                                                               size_t start_parsing_at) const {
-    size_t coord_start = ast.find('[', start_parsing_at);
+    const size_t coord_start = ast.find('[', start_parsing_at);
     if (coord_start == std::string::npos) {
         return {};
     }
 
-    size_t coord_end = ast.find(']', coord_start);
+    const size_t coord_end = ast.find(']', coord_start);
     if (coord_end == std::string::npos) {
         return {};
     }
 
-    auto coords = ast.substr(coord_start + 1, coord_end - coord_start - 1);
-    size_t comma = coords.find(',');
+    const auto coords = ast.substr(coord_start + 1, coord_end - coord_start - 1);
+    const size_t comma = coords.find(',');
     if (comma == std::string::npos) {
         return {};
     }
@@ -138,32 +139,33 @@ std::optional<std::pair<ast::Position, size_t>> ASTExtractor::extractPosition(st
 
 std::optional<std::pair<ast::Rect, size_t>> ASTExtractor::extractRect(std::string_view ast,
                                                                       size_t start_parsing_at) const {
-    auto start_data = extractPosition(ast, start_parsing_at);
+    const auto start_data = extractPosition(ast, start_parsing_at);
     if (!start_data) {
         return {};
     }
-    auto [start, continue_parsing_at] = *start_data;
+    const auto [start, continue_parsing_at] = *start_data;
 
-    auto end_data = extractPosition(ast, continue_parsing_at);
+    const auto end_data = extractPosition(ast, continue_parsing_at);
     if (!end_data) {
         return {};
     }
-    auto [end, further_parsing_at] = *end_data;
+    const auto [end, further_parsing_at] = *end_data;
 
     return {{{start, end}, further_parsing_at}};
 }
 
 std::optional<ast::Rect> ASTExtractor::getNameLocation(std::string_view ast) const {
-    auto data = ExtractIdentifierASTFragment(ast);
+    const auto data = ExtractIdentifierASTFragment(ast);
 
     if (!data)
         return {};
 
-    auto [id_ast, start_parsing_at] = *data;
-    auto rect_data = extractRect(id_ast, 0);
+    constexpr size_t start_parsing_at = 0;
+    const auto [id_ast, _] = *data;
+    const auto rect_data = extractRect(id_ast, start_parsing_at);
 
     if (rect_data) {
-        auto [rect, _] = *rect_data;
+        const auto [rect, _] = *rect_data;
         return {rect};
     } else {
         return {};
@@ -173,21 +175,22 @@ std::optional<ast::Rect> ASTExtractor::getNameLocation(std::string_view ast) con
 std::optional<ast::Rect> ASTExtractor::findEnclosingClass(std::string_view ast, const ast::Rect &func_rect,
                                                           size_t start_parsing_at) const {
     std::optional<ast::Rect> last_enclosing_class;
-    auto func_interval = ast::LinesInterval{func_rect};
+    const auto func_interval = ast::LinesInterval{func_rect};
 
     while (auto class_data = ExtractClassDefinitionASTFragment(ast, start_parsing_at)) {
-        auto [class_ast, continue_parsing_at] = *class_data;
-        auto rect_data = extractRect(class_ast, 0);
+        const auto [class_ast, continue_parsing_at] = *class_data;
+        const auto rect_data = extractRect(class_ast, 0);
 
         if (!rect_data) {
             break;
         }
 
-        auto [class_rect, _] = *rect_data;
-        auto class_interval = ast::LinesInterval{class_rect};
+        const auto [class_rect, _] = *rect_data;
+        const auto class_interval = ast::LinesInterval{class_rect};
 
         if (class_interval.Contains(func_interval)) {
-            if (auto class_loc = findEnclosingClass(class_ast, func_rect, 1)) {
+            constexpr std::string_view opened_brace = "(";
+            if (const auto class_loc = findEnclosingClass(class_ast, func_rect, opened_brace.length())) {
                 return class_loc;
             } else {
                 return getNameLocation(class_ast);
@@ -198,6 +201,65 @@ std::optional<ast::Rect> ASTExtractor::findEnclosingClass(std::string_view ast, 
     }
 
     return last_enclosing_class;
+}
+
+std::optional<std::string> ASTExtractor::findEnclosingDecoratorAST(std::string_view ast, const ast::Rect &func_rect,
+                                                                   size_t start_parsing_at) const {
+    std::optional<std::string> res;
+    std::queue<std::pair<std::string, size_t>> q;
+
+    const auto func_interval = ast::LinesInterval{func_rect};
+
+    q.emplace(ast, start_parsing_at);
+
+    while (!q.empty()) {
+        const auto [ast_fragment, continue_parsing_at] = q.front();
+        q.pop();
+
+        const auto decorated_data = ExtractDecoratedDefinitionASTFragment(ast_fragment, continue_parsing_at);
+        if (decorated_data) {
+            constexpr size_t start_find_rect_at = 0;
+            const auto [decorated_ast, further_parsing_at] = *decorated_data;
+
+            if (const auto rect_data = extractRect(decorated_ast, start_find_rect_at)) {
+                const auto [decorated_rect, _] = *rect_data;
+                const auto decorated_interval = ast::LinesInterval{decorated_rect};
+
+                if (decorated_interval.Contains(func_interval)) {
+                    res = decorated_ast;
+                    constexpr std::string_view opened_brace = "(";
+                    q.emplace(decorated_ast, opened_brace.length());
+                    continue;
+                }
+            }
+
+            q.emplace(ast_fragment, further_parsing_at);
+        }
+    }
+
+    return res;
+}
+
+size_t ASTExtractor::findPositionAfterFunctionDefinition(std::string_view ast, size_t start_parsing_at) const {
+    constexpr std::string_view marker = "(function_definition";
+    auto pos = ast.find(marker, start_parsing_at);
+
+    if (pos == std::string::npos) {
+        return pos;
+    } else {
+        return pos + marker.length();
+    }
+}
+
+std::optional<ast::Rect> ASTExtractor::firstFunctionDefinitionAfterDecorator(std::string_view ast) const {
+    const auto data = ExtractFunctionDefinitionASTFragment(ast);
+
+    if (data) {
+        const auto [func_ast, _] = *data;
+        return getNameLocation(func_ast);
+    } else {
+        return {};
+    }
 }
 
 }  // namespace analyser::ast_extractor
