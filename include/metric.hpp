@@ -1,5 +1,8 @@
 #pragma once
 
+#include <algorithm>
+#include <ranges>
+
 #include "function.hpp"
 
 namespace analyser::metric {

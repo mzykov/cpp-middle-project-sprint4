@@ -14,12 +14,12 @@ auto AnalyseFunctions(const std::vector<std::string> &file_names, const metric::
     std::vector<std::pair<function::Function, metric::MetricResults>> res;
 
     std::ranges::for_each(file_names, [&metric_extractor, &res](std::string_view file_name) {
-        const function::FunctionExtractor extractor;
-        const auto funcs = extractor.ProcessOneFile(file::File{file_name});
+        const function::FunctionExtractor function_extractor;
+        const auto functions = function_extractor.ProcessOneFile(file::File{file_name});
 
-        std::ranges::for_each(funcs, [&metric_extractor, &res](const auto &func) {
-            const auto metrics = metric_extractor.ProcessOneFunction(func);
-            res.emplace_back(func, metrics);
+        std::ranges::for_each(functions, [&metric_extractor, &res](const auto &function) {
+            const auto metrics = metric_extractor.ProcessOneFunction(function);
+            res.emplace_back(function, metrics);
         });
     });
 

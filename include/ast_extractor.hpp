@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <optional>
 #include <string>
 #include <unordered_set>
@@ -54,8 +55,14 @@ public:
 
     size_t CountFirstLevelASTNodes(std::string_view ast) const;
     size_t CountNthLevelASTNodes(std::string_view ast, size_t level) const;
+
+    const auto &CyclomaticKeywords() const noexcept { return cyclomatic_keywords_; }
     // clang-format on
 private:
+    static constexpr std::array<std::string_view, 12> cyclomatic_keywords_{
+        {"(assert_statement", "(if_statement", "(elif_clause", "(else_clause", "(conditional_expression",
+         "(match_statement", "(case_clause", "(for_statement", "(while_statement", "(try_statement", "(except_clause",
+         "(finally_clause"}};
 };
 
 }  // namespace analyser::ast_extractor

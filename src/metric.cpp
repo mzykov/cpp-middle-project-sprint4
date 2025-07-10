@@ -4,10 +4,10 @@ namespace analyser::metric {
 
 void MetricExtractor::RegisterMetric(std::unique_ptr<IMetric> &&metric) { metrics_.emplace_back(std::move(metric)); }
 
-MetricResults MetricExtractor::ProcessOneFunction(const function::Function &func) const {
+MetricResults MetricExtractor::ProcessOneFunction(const function::Function &function) const {
     MetricResults res;
-    std::for_each(metrics_.cbegin(), metrics_.cend(),
-                  [&](const auto &metric_ptr) { res.emplace_back(metric_ptr->Calculate(func, extractor_)); });
+    std::ranges::for_each(
+        metrics_, [&](const auto &metric_ptr) { res.emplace_back(metric_ptr->Calculate(function, extractor_)); });
     return res;
 }
 

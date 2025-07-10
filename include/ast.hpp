@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+#include <boost/functional/hash.hpp>
+
 namespace analyser::ast {
 
 struct Position {
@@ -12,6 +14,13 @@ struct Position {
     ValueType line = 0;
     ValueType col = 0;
     auto operator<=>(const Position &) const = default;
+
+    friend std::size_t hash_value(const Position &p) {
+        std::size_t seed = 0;
+        boost::hash_combine(seed, p.line);
+        boost::hash_combine(seed, p.col);
+        return seed;
+    }
 };
 
 using Rect = std::pair<Position, Position>;
@@ -53,3 +62,17 @@ struct ASTreeNode {
 std::pair<std::string, size_t> extractNodeName(std::string_view s, size_t start_parsing_at);
 
 }  // namespace analyser::ast
+
+namespace std {
+
+template <>
+struct hash<std::pair<analyser::ast::Position, analyser::ast::Position>> {
+    std::size_t operator()(const analyser::ast::Rect &rect) const noexcept {
+        std::size_t seed = 0;
+        boost::hash_combine(seed, std::get<0>(rect));
+        boost::hash_combine(seed, std::get<1>(rect));
+        return seed;
+    }
+};
+
+}  // namespace std
