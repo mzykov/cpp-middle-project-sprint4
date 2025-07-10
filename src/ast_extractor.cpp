@@ -6,67 +6,57 @@
 namespace analyser::ast_extractor {
 
 std::optional<std::pair<std::string, size_t>>
-ASTExtractor::ExtractClassDefinitionASTFragment(std::string_view ast, size_t start_parsing_at) const {
-    std::string_view marker = "(class_definition";
-    return extractASTFragment(ast, marker, start_parsing_at);
-}
-
-std::optional<std::pair<std::string, size_t>>
-ASTExtractor::ExtractFunctionDefinitionASTFragment(std::string_view ast, size_t start_parsing_at) const {
+ASTExtractor::ExtractFunctionDefinitionASTFragment(std::string_view ast, const size_t start_parsing_at) const {
     std::string_view marker = "(function_definition";
     return extractASTFragment(ast, marker, start_parsing_at);
 }
 
 std::optional<std::pair<std::string, size_t>>
-ASTExtractor::ExtractDecoratedDefinitionASTFragment(std::string_view ast, size_t start_parsing_at) const {
-    std::string_view marker = "(decorated_definition";
-    return extractASTFragment(ast, marker, start_parsing_at);
-}
-
-std::optional<std::pair<std::string, size_t>> ASTExtractor::ExtractDecoratorASTFragment(std::string_view ast,
-                                                                                        size_t start_parsing_at) const {
-    std::string_view marker = "(decorator";
-    return extractASTFragment(ast, marker, start_parsing_at);
-}
-
-std::optional<std::pair<std::string, size_t>>
-ASTExtractor::ExtractIdentifierASTFragment(std::string_view ast, size_t start_parsing_at) const {
+ASTExtractor::ExtractIdentifierASTFragment(std::string_view ast, const size_t start_parsing_at) const {
     std::string_view marker = "(identifier";
     return extractASTFragment(ast, marker, start_parsing_at);
 }
 
 std::optional<std::pair<std::string, size_t>>
-ASTExtractor::ExtractParametersASTFragment(std::string_view ast, size_t start_parsing_at) const {
+ASTExtractor::ExtractParametersASTFragment(std::string_view ast, const size_t start_parsing_at) const {
     std::string_view marker = "(parameters";
     return extractASTFragment(ast, marker, start_parsing_at);
 }
 
-std::optional<std::pair<std::string, size_t>> ASTExtractor::ExtractCommentASTFragment(std::string_view ast,
-                                                                                      size_t start_parsing_at) const {
+std::optional<std::pair<std::string, size_t>>
+ASTExtractor::ExtractCommentASTFragment(std::string_view ast, const size_t start_parsing_at) const {
     std::string_view marker = "(comment";
     return extractASTFragment(ast, marker, start_parsing_at);
 }
 
 std::unordered_set<size_t> ASTExtractor::extractAllCommentLineNumbers(std::string_view ast,
-                                                                      size_t start_parsing_at) const {
+                                                                      const size_t start_parsing_at) const {
     std::unordered_set<size_t> res;
+    std::queue<std::pair<std::string, size_t>> q;
 
-    while (const auto comment_data = ExtractCommentASTFragment(ast, start_parsing_at)) {
-        const auto [comment_ast, continue_parsing_at] = *comment_data;
-        const auto rect_data = extractRect(comment_ast, 0);
+    q.emplace(ast, start_parsing_at);
 
-        if (!rect_data) {
-            break;
+    while (!q.empty()) {
+        const auto [ast_fragment, continue_parsing_at] = q.front();
+        q.pop();
+
+        const auto comment_data = ExtractCommentASTFragment(ast_fragment, continue_parsing_at);
+        if (comment_data) {
+            const auto [comment_ast, further_parsing_at] = *comment_data;
+            q.emplace(ast_fragment, further_parsing_at);
+
+            constexpr size_t start_parsing_comment_at = 0;
+            const auto rect_data = extractRect(comment_ast, start_parsing_comment_at);
+
+            if (rect_data) {
+                const auto [rect, _] = *rect_data;
+                const auto comment_line = ast::LinesInterval{rect};
+
+                if (comment_line.IsOneLine()) {
+                    res.insert(comment_line.start_line);
+                }
+            }
         }
-
-        const auto [rect, _] = *rect_data;
-        const auto comment_line = ast::LinesInterval{rect};
-
-        if (comment_line.IsOneLine()) {
-            res.insert(comment_line.start_line);
-        }
-
-        start_parsing_at = continue_parsing_at;
     }
 
     return res;
@@ -74,7 +64,7 @@ std::unordered_set<size_t> ASTExtractor::extractAllCommentLineNumbers(std::strin
 
 size_t ASTExtractor::CountFirstLevelASTNodes(std::string_view ast) const { return CountNthLevelASTNodes(ast, 1); }
 
-size_t ASTExtractor::CountNthLevelASTNodes(std::string_view ast, size_t level) const {
+size_t ASTExtractor::CountNthLevelASTNodes(std::string_view ast, const size_t level) const {
     size_t res = 0, open_braces = 1, end = 1;
 
     while (end < ast.length() && open_braces > 0) {
@@ -94,7 +84,7 @@ size_t ASTExtractor::CountNthLevelASTNodes(std::string_view ast, size_t level) c
 
 std::optional<std::pair<std::string, size_t>>
 ASTExtractor::extractASTFragment(std::string_view ast, std::string_view marker_started_with_one_opened_brace,
-                                 size_t start_parsing_at) const {
+                                 const size_t start_parsing_at) const {
     const auto marker_found_at = ast.find(marker_started_with_one_opened_brace, start_parsing_at);
 
     if (marker_found_at == std::string::npos) {
@@ -117,7 +107,7 @@ ASTExtractor::extractASTFragment(std::string_view ast, std::string_view marker_s
 }
 
 std::optional<std::pair<ast::Position, size_t>> ASTExtractor::extractPosition(std::string_view ast,
-                                                                              size_t start_parsing_at) const {
+                                                                              const size_t start_parsing_at) const {
     const size_t coord_start = ast.find('[', start_parsing_at);
     if (coord_start == std::string::npos) {
         return {};
@@ -138,7 +128,7 @@ std::optional<std::pair<ast::Position, size_t>> ASTExtractor::extractPosition(st
 }
 
 std::optional<std::pair<ast::Rect, size_t>> ASTExtractor::extractRect(std::string_view ast,
-                                                                      size_t start_parsing_at) const {
+                                                                      const size_t start_parsing_at) const {
     const auto start_data = extractPosition(ast, start_parsing_at);
     if (!start_data) {
         return {};
@@ -173,62 +163,50 @@ std::optional<ast::Rect> ASTExtractor::getNameLocation(std::string_view ast) con
 }
 
 std::optional<ast::Rect> ASTExtractor::findEnclosingClass(std::string_view ast, const ast::Rect &func_rect,
-                                                          size_t start_parsing_at) const {
-    std::optional<ast::Rect> last_enclosing_class;
-    const auto func_interval = ast::LinesInterval{func_rect};
+                                                          const size_t start_parsing_at) const {
+    std::string_view marker = "(class_definition";
+    const auto ast_data = findEnclosingParentEntityAST(ast, marker, func_rect, start_parsing_at);
 
-    while (auto class_data = ExtractClassDefinitionASTFragment(ast, start_parsing_at)) {
-        const auto [class_ast, continue_parsing_at] = *class_data;
-        const auto rect_data = extractRect(class_ast, 0);
-
-        if (!rect_data) {
-            break;
-        }
-
-        const auto [class_rect, _] = *rect_data;
-        const auto class_interval = ast::LinesInterval{class_rect};
-
-        if (class_interval.Contains(func_interval)) {
-            constexpr std::string_view opened_brace = "(";
-            if (const auto class_loc = findEnclosingClass(class_ast, func_rect, opened_brace.length())) {
-                return class_loc;
-            } else {
-                return getNameLocation(class_ast);
-            }
-        }
-
-        start_parsing_at = continue_parsing_at;
+    if (ast_data) {
+        return getNameLocation(*ast_data);
+    } else {
+        return {};
     }
-
-    return last_enclosing_class;
 }
 
 std::optional<std::string> ASTExtractor::findEnclosingDecoratorAST(std::string_view ast, const ast::Rect &func_rect,
-                                                                   size_t start_parsing_at) const {
+                                                                   const size_t start_parsing_at) const {
+    std::string_view marker = "(decorated_definition";
+    return findEnclosingParentEntityAST(ast, marker, func_rect, start_parsing_at);
+}
+
+std::optional<std::string> ASTExtractor::findEnclosingParentEntityAST(std::string_view ast, std::string_view marker,
+                                                                      const ast::Rect &func_rect,
+                                                                      const size_t start_parsing_at) const {
     std::optional<std::string> res;
     std::queue<std::pair<std::string, size_t>> q;
 
     const auto func_interval = ast::LinesInterval{func_rect};
-
     q.emplace(ast, start_parsing_at);
 
     while (!q.empty()) {
         const auto [ast_fragment, continue_parsing_at] = q.front();
         q.pop();
 
-        const auto decorated_data = ExtractDecoratedDefinitionASTFragment(ast_fragment, continue_parsing_at);
-        if (decorated_data) {
+        const auto data = extractASTFragment(ast_fragment, marker, continue_parsing_at);
+        if (data) {
+            const auto [nested_ast, further_parsing_at] = *data;
             constexpr size_t start_find_rect_at = 0;
-            const auto [decorated_ast, further_parsing_at] = *decorated_data;
+            const auto rect_data = extractRect(nested_ast, start_find_rect_at);
 
-            if (const auto rect_data = extractRect(decorated_ast, start_find_rect_at)) {
-                const auto [decorated_rect, _] = *rect_data;
-                const auto decorated_interval = ast::LinesInterval{decorated_rect};
+            if (rect_data) {
+                const auto [parent_rect, _] = *rect_data;
+                const auto parent_interval = ast::LinesInterval{parent_rect};
 
-                if (decorated_interval.Contains(func_interval)) {
-                    res = decorated_ast;
+                if (parent_interval.Contains(func_interval)) {
+                    res = nested_ast;
                     constexpr std::string_view opened_brace = "(";
-                    q.emplace(decorated_ast, opened_brace.length());
+                    q.emplace(nested_ast, opened_brace.length());
                     continue;
                 }
             }
@@ -240,9 +218,9 @@ std::optional<std::string> ASTExtractor::findEnclosingDecoratorAST(std::string_v
     return res;
 }
 
-size_t ASTExtractor::findPositionAfterFunctionDefinition(std::string_view ast, size_t start_parsing_at) const {
-    constexpr std::string_view marker = "(function_definition";
-    auto pos = ast.find(marker, start_parsing_at);
+size_t ASTExtractor::findPositionAfterFunctionDefinition(std::string_view ast, const size_t start_parsing_at) const {
+    constexpr std::string_view marker = "(function_definition";  // TODO: remove this duplicate definition
+    const auto pos = ast.find(marker, start_parsing_at);
 
     if (pos == std::string::npos) {
         return pos;

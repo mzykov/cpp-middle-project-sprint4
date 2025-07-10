@@ -26,19 +26,19 @@ std::vector<std::string> File::ReadSourceFile(std::ifstream &file) {
 }
 
 std::string File::ReadAST() try {
-    const std::string tree_sitter_cmd = "tree-sitter parse --config-path ~/.config/tree-sitter/config.json ";
-    auto full_cmd = tree_sitter_cmd + name + " 2>&1";
-
     std::string result;
     std::array<char, 256> buffer;
+
+    const std::string tree_sitter_cmd = "tree-sitter parse --config-path ~/.config/tree-sitter/config.json ";
+    const auto full_cmd = tree_sitter_cmd + name + " 2>&1";
 
     using PipePtr = std::unique_ptr<FILE, decltype([](FILE *pipe) {
                                         if (!pipe)
                                             return;
 
-                                        int status = pclose(pipe);
+                                        const int status = pclose(pipe);
                                         if (WIFEXITED(status)) {
-                                            int exit_status = WEXITSTATUS(status);
+                                            const int exit_status = WEXITSTATUS(status);
                                             if (exit_status != 0) {
                                                 throw std::runtime_error("Command failed with exit code " +
                                                                          std::to_string(exit_status));
