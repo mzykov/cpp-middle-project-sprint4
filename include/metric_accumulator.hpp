@@ -17,7 +17,7 @@ protected:
 };
 
 struct MetricsAccumulator {
-    void RegisterAccumulator(const std::string &metric_name, std::unique_ptr<IAccumulator> acc) {
+    void RegisterAccumulator(const std::string &metric_name, std::unique_ptr<IAccumulator> &&acc) {
         accumulators_[metric_name] = std::move(acc);
     }
 

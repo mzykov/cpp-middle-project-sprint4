@@ -40,9 +40,6 @@ int main(int argc, char *argv[]) {
             "AverageAccumulator", std::make_unique<metric_accumulator_impl::AverageAccumulator>()
         );
         accumulator.RegisterAccumulator(
-            "CategoricalAccumulator", std::make_unique<metric_accumulator_impl::CategoricalAccumulator>()
-        );
-        accumulator.RegisterAccumulator(
             "SumAverageAccumulator", std::make_unique<metric_accumulator_impl::SumAverageAccumulator>()
         );
     }

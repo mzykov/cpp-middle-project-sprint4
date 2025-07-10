@@ -6,10 +6,8 @@ namespace analyser::metric_accumulator::metric_accumulator_impl {
 
 struct AverageAccumulator final : public IAccumulator {
     void Accumulate(const metric::MetricResult &metric_result) override;
-
     void Finalize() override;
-
-    void Reset();
+    void Reset() override;
 
     double Get() const;
 
