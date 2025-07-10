@@ -3,17 +3,14 @@
 namespace analyser::metric_accumulator {
 
 void MetricsAccumulator::AccumulateNextResults(const metric::MetricResults &metric_results) const {
-    for (auto &[_, acc_ptr] : accumulators_) {
-        for (const auto metric_result : metric_results) {
-            acc_ptr->Accumulate(metric_result);
-        }
-    }
+    std::ranges::for_each(accumulators_, [&metric_results](auto &p) {
+        std::ranges::for_each(metric_results,
+                              [&p](const auto &metric_result) { std::get<1>(p)->Accumulate(metric_result); });
+    });
 }
 
 void MetricsAccumulator::ResetAccumulators() {
-    for (auto &[_, acc_ptr] : accumulators_) {
-        acc_ptr->Reset();
-    }
+    std::ranges::for_each(accumulators_, [](auto &p) { std::get<1>(p)->Reset(); });
 }
 
 }  // namespace analyser::metric_accumulator
