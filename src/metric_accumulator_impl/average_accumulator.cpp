@@ -1,5 +1,7 @@
 #include "metric_accumulator_impl/average_accumulator.hpp"
 
+#include <print>
+
 namespace analyser::metric_accumulator::metric_accumulator_impl {
 
 void AverageAccumulator::Accumulate(const metric::MetricResult &metric_result) {
@@ -10,7 +12,8 @@ void AverageAccumulator::Accumulate(const metric::MetricResult &metric_result) {
 }
 
 void AverageAccumulator::Finalize() {
-    average_ = static_cast<double>(sum_) / static_cast<double>(count_);
+    if (count_ > 0)
+        average_ = static_cast<double>(sum_) / static_cast<double>(count_);
     is_finalized_ = true;
 }
 

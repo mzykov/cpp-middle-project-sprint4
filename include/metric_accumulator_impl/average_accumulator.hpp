@@ -27,7 +27,7 @@ template <>
 struct formatter<AverageAccumulator> {
     template <typename FormatContext>
     auto format(const AverageAccumulator &acc, FormatContext &fc) const {
-        format_to(fc.out(), "{}", acc.Get());
+        format_to(fc.out(), "{:.3}", acc.Get());
         return fc.out();
     }
     constexpr auto parse(format_parse_context &ctx) {
