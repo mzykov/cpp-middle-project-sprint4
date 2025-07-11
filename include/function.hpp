@@ -16,9 +16,10 @@ struct Function {
 class FunctionExtractor {
 public:
     std::vector<Function> ProcessOneFile(const file::File &file) const;
+    const ast_extractor::ASTExtractor &GetAstExtractor() const { return ast_extractor_; }
 
 private:
-    ast_extractor::ASTExtractor extractor_;
+    ast_extractor::ASTExtractor ast_extractor_;
 
     std::optional<std::pair<Function, size_t>> processASTFragment(const file::File &file, std::string_view ast,
                                                                   size_t start_parsing_at) const;

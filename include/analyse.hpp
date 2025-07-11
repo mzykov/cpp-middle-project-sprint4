@@ -17,8 +17,8 @@ auto AnalyseFunctions(const std::vector<std::string> &file_names, const metric::
         const function::FunctionExtractor function_extractor;
         const auto functions = function_extractor.ProcessOneFile(file::File{file_name});
 
-        std::ranges::for_each(functions, [&metric_extractor, &res](const auto &function) {
-            const auto metrics = metric_extractor.ProcessOneFunction(function);
+        std::ranges::for_each(functions, [&function_extractor, &metric_extractor, &res](const auto &function) {
+            const auto metrics = metric_extractor.ProcessOneFunction(function, function_extractor.GetAstExtractor());
             res.emplace_back(function, metrics);
         });
     });
@@ -68,7 +68,7 @@ auto SplitByClasses(auto &analysis) {
 }
 
 void PrintAccumulatedAnalysisForClass(const std::string &class_name,
-                                      const metric_accumulator::MetricsAccumulator &accumulator) {
+                                      const metric_accumulator::MetricAccumulator &accumulator) {
     std::print("\nAccumulated Analysis for сlass {}\n", class_name);
 }
 
@@ -85,7 +85,7 @@ auto SplitByFiles(auto &analysis) {
 }
 
 void PrintAccumulatedAnalysisForFile(const std::string &file_name,
-                                     const metric_accumulator::MetricsAccumulator &accumulator) {
+                                     const metric_accumulator::MetricAccumulator &accumulator) {
     std::print("\nAccumulated Analysis for file {}\n", file_name);
     /*
         for (const auto &[metric_name, ] : accumulator.GetAccumulators()) {
@@ -96,11 +96,11 @@ void PrintAccumulatedAnalysisForFile(const std::string &file_name,
     */
 }
 
-void AccumulateFunctionAnalysis(const auto &analysis, const metric_accumulator::MetricsAccumulator &accumulator) {
+void AccumulateFunctionAnalysis(const auto &analysis, const metric_accumulator::MetricAccumulator &accumulator) {
     // здесь ваш код
 }
 
-void PrintAccumulatedAnalysisTotal(const metric_accumulator::MetricsAccumulator &accumulator) {
+void PrintAccumulatedAnalysisTotal(const metric_accumulator::MetricAccumulator &accumulator) {
     std::print("\nAccumulated Analysis total\n");
 }
 

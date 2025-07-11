@@ -22,7 +22,7 @@ std::vector<Function> FunctionExtractor::ProcessOneFile(const file::File &file) 
             const auto &[func, further_parsing_at] = *data;
             result.push_back(func);
             q.emplace(ast_fragment, further_parsing_at);
-            q.emplace(func.ast, extractor_.findPositionAfterFunctionDefinition(func.ast));
+            q.emplace(func.ast, ast_extractor_.FindPositionAfterFunctionDefinition(func.ast));
         }
     }
 
@@ -31,14 +31,14 @@ std::vector<Function> FunctionExtractor::ProcessOneFile(const file::File &file) 
 
 std::optional<std::pair<Function, size_t>>
 FunctionExtractor::processASTFragment(const file::File &file, std::string_view ast, size_t start_parsing_at) const {
-    const auto data = extractor_.ExtractFunctionDefinitionASTFragment(ast, start_parsing_at);
+    const auto data = ast_extractor_.ExtractFunctionDefinitionASTFragment(ast, start_parsing_at);
 
     if (!data) {
         return {};
     }
 
     const auto [func_ast, continue_parsing_at] = *data;
-    const auto name_loc = extractor_.getNameLocation(func_ast);
+    const auto name_loc = ast_extractor_.GetNameLocation(func_ast);
 
     if (!name_loc) {
         return {};
@@ -47,15 +47,15 @@ FunctionExtractor::processASTFragment(const file::File &file, std::string_view a
     const auto func_name = getNameFromSource(*name_loc, file.source_lines);
 
     std::optional<std::string> class_name;
-    if (const auto class_loc = extractor_.findEnclosingClass(file.ast, *name_loc)) {
+    if (const auto class_loc = ast_extractor_.FindEnclosingClass(file.ast, *name_loc)) {
         class_name = getNameFromSource(*class_loc, file.source_lines);
     }
 
     bool is_decorated = false;
-    const auto decorated_ast = extractor_.findEnclosingDecoratorAST(file.ast, *name_loc);
+    const auto decorated_ast = ast_extractor_.FindEnclosingDecoratorAST(file.ast, *name_loc);
 
     if (decorated_ast) {
-        const auto maybe_nested_name_loc = extractor_.firstFunctionDefinitionAfterDecorator(*decorated_ast);
+        const auto maybe_nested_name_loc = ast_extractor_.FirstFunctionDefinitionAfterDecorator(*decorated_ast);
 
         if (maybe_nested_name_loc && *maybe_nested_name_loc == *name_loc) {
             is_decorated = true;

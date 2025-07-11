@@ -15,6 +15,8 @@ struct MetricResult {
 
 struct IMetric {
     virtual ~IMetric() = default;
+    virtual std::string Name() const = 0;
+
     MetricResult Calculate(const function::Function &f, const ast_extractor::ASTExtractor &e) const {
         return MetricResult{
             .metric_name = Name(),
@@ -25,7 +27,6 @@ struct IMetric {
 protected:
     virtual MetricResult::ValueType CalculateImpl(const function::Function &f,
                                                   const ast_extractor::ASTExtractor &e) const = 0;
-    virtual std::string Name() const = 0;
 };
 
 using MetricResults = std::vector<MetricResult>;
@@ -33,11 +34,11 @@ using MetricResults = std::vector<MetricResult>;
 class MetricExtractor {
 public:
     void RegisterMetric(std::unique_ptr<IMetric> &&metric);
-    MetricResults ProcessOneFunction(const function::Function &func) const;
+    MetricResults ProcessOneFunction(const function::Function &function,
+                                     const ast_extractor::ASTExtractor &ast_extractor) const;
 
 private:
     std::vector<std::unique_ptr<IMetric>> metrics_;
-    ast_extractor::ASTExtractor extractor_;
 };
 
 }  // namespace analyser::metric

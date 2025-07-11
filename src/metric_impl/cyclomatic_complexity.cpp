@@ -20,13 +20,13 @@ CyclomaticComplexityMetric::CalculateImpl(const function::Function &function,
         q.pop();
 
         std::ranges::for_each(ast_extractor.CyclomaticKeywords(), [&](std::string_view kw) {
-            const auto data = ast_extractor.extractASTFragment(ast, kw, continue_parsing_at);
+            const auto data = ast_extractor.ExtractASTFragment(ast, kw, continue_parsing_at);
             if (data) {
                 const auto [nested_ast, further_parsing_at] = *data;
                 q.emplace(ast, further_parsing_at);
                 q.emplace(nested_ast, start_parsing_at + kw.length());
 
-                const auto rect_data = ast_extractor.extractRect(nested_ast, start_parsing_at);
+                const auto rect_data = ast_extractor.ExtractRect(nested_ast, start_parsing_at);
                 if (rect_data) {
                     const auto [rect, _] = *rect_data;
 

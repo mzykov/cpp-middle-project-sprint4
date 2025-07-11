@@ -2,14 +2,14 @@
 
 namespace analyser::metric_accumulator {
 
-void MetricsAccumulator::AccumulateNextResults(const metric::MetricResults &metric_results) const {
+void MetricAccumulator::AccumulateNextResults(const metric::MetricResults &metric_results) const {
     std::ranges::for_each(accumulators_, [&metric_results](auto &p) {
         std::ranges::for_each(metric_results,
                               [&p](const auto &metric_result) { std::get<1>(p)->Accumulate(metric_result); });
     });
 }
 
-void MetricsAccumulator::ResetAccumulators() {
+void MetricAccumulator::ResetAccumulators() {
     std::ranges::for_each(accumulators_, [](auto &p) { std::get<1>(p)->Reset(); });
 }
 
