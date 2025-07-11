@@ -18,3 +18,21 @@ private:
 };
 
 }  // namespace analyser::metric_accumulator::metric_accumulator_impl
+
+namespace std {
+
+using namespace analyser::metric_accumulator::metric_accumulator_impl;
+
+template <>
+struct formatter<AverageAccumulator> {
+    template <typename FormatContext>
+    auto format(const AverageAccumulator &acc, FormatContext &fc) const {
+        format_to(fc.out(), "{}", acc.Get());
+        return fc.out();
+    }
+    constexpr auto parse(format_parse_context &ctx) {
+        return ctx.begin();  // Просто игнорируем пользовательский формат
+    }
+};
+
+}  // namespace std

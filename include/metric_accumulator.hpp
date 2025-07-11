@@ -1,5 +1,6 @@
 #pragma once
 
+#include <format>
 #include <unordered_map>
 
 #include "metric.hpp"
@@ -17,13 +18,14 @@ protected:
 };
 
 struct MetricAccumulator {
-    void RegisterAccumulator(const std::string &metric_name, std::unique_ptr<IAccumulator> &&acc) {
-        accumulators_[metric_name] = std::move(acc);
+    template <typename Accumulator>
+    void RegisterAccumulator(const std::string &metric_name, std::shared_ptr<Accumulator> acc) {
+        accumulators_[metric_name] = acc;
     }
 
     template <typename Accumulator>
     const Accumulator &GetFinalizedAccumulator(const std::string &metric_name) const {
-        auto acc = accumulators_.at(metric_name);
+        auto acc = dynamic_cast<Accumulator *>(accumulators_.at(metric_name).get());
         acc->Finalize();
         return *acc;
     }

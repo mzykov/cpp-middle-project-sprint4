@@ -45,63 +45,44 @@ void PrintAnalyseResults(const auto &analysis) {
 }
 
 auto SplitByClasses(auto &analysis) {
-    std::ranges::sort(analysis, [](const auto &lhd, const auto &rhd) {
-        const std::string empty = "";
-        const auto l = std::get<function::Function>(lhd).class_name.value_or(empty);
-        const auto r = std::get<function::Function>(rhd).class_name.value_or(empty);
-        return l < r;
+    const auto class_name_lambda = [](const auto &p) {
+        return std::get<function::Function>(p).class_name.value_or("");
+    };
+
+    std::ranges::sort(analysis, [&class_name_lambda](const auto &lhd, const auto &rhd) {
+        return class_name_lambda(lhd) < class_name_lambda(rhd);
     });
 
-    auto chunks = analysis | std::views::chunk_by([](const auto &lhd, const auto &rhd) {
-                      const std::string empty = "";
-                      const auto l = std::get<function::Function>(lhd).class_name.value_or(empty);
-                      const auto r = std::get<function::Function>(rhd).class_name.value_or(empty);
-                      return l == r;
+    auto chunks = analysis | std::views::chunk_by([&class_name_lambda](const auto &lhd, const auto &rhd) {
+                      return class_name_lambda(lhd) == class_name_lambda(rhd);
                   }) |
                   std::views::drop(1);
 
-    auto class_names = chunks | std::views::transform([](const auto &chunk) {
-                           return std::get<function::Function>(chunk[0]).class_name.value();
-                       });
+    auto class_names =
+        chunks | std::views::transform([&class_name_lambda](const auto &chunk) { return class_name_lambda(chunk[0]); });
 
     return std::views::zip(class_names, chunks);
 }
 
-void PrintAccumulatedAnalysisForClass(const std::string &class_name,
-                                      const metric_accumulator::MetricAccumulator &accumulator) {
-    std::print("\nAccumulated Analysis for сlass {}\n", class_name);
-}
-
 auto SplitByFiles(auto &analysis) {
-    std::ranges::sort(analysis, [](const auto &lhd, const auto &rhd) {
-        return std::get<function::Function>(lhd).file_name < std::get<function::Function>(rhd).file_name;
+    const auto file_name_lambda = [](const auto &p) { return std::get<function::Function>(p).file_name; };
+
+    std::ranges::sort(analysis, [&file_name_lambda](const auto &lhd, const auto &rhd) {
+        return file_name_lambda(lhd) < file_name_lambda(rhd);
     });
-    auto chunks = analysis | std::views::chunk_by([](const auto &lhd, const auto &rhd) {
-                      return std::get<function::Function>(lhd).file_name == std::get<function::Function>(rhd).file_name;
+
+    auto chunks = analysis | std::views::chunk_by([&file_name_lambda](const auto &lhd, const auto &rhd) {
+                      return file_name_lambda(lhd) == file_name_lambda(rhd);
                   });
-    auto file_names = chunks | std::views::transform(
-                                   [](const auto &chunk) { return std::get<function::Function>(chunk[0]).file_name; });
+
+    auto file_names =
+        chunks | std::views::transform([&file_name_lambda](const auto &chunk) { return file_name_lambda(chunk[0]); });
+
     return std::views::zip(file_names, chunks);
 }
 
-void PrintAccumulatedAnalysisForFile(const std::string &file_name,
-                                     const metric_accumulator::MetricAccumulator &accumulator) {
-    std::print("\nAccumulated Analysis for file {}\n", file_name);
-    /*
-        for (const auto &[metric_name, ] : accumulator.GetAccumulators()) {
-            std::for_each(results.cbegin(), results.cend(), [](const auto &m) {
-                std::print("\t{}: {}\n", m.metric_name, m.metric_value);
-            });
-        }
-    */
-}
-
-void AccumulateFunctionAnalysis(const auto &analysis, const metric_accumulator::MetricAccumulator &accumulator) {
-    // здесь ваш код
-}
-
-void PrintAccumulatedAnalysisTotal(const metric_accumulator::MetricAccumulator &accumulator) {
-    std::print("\nAccumulated Analysis total\n");
+void AccumulateFunctionAnalysis(const auto &analysis, const metric_accumulator::MetricAccumulator &metric_accumulator) {
+    std::ranges::for_each(analysis, [&metric_accumulator](const auto &p) { std::get<metric::MetricResults>(p); });
 }
 
 }  // namespace analyser

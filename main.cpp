@@ -30,40 +30,65 @@ int main(int argc, char *argv[]) {
 
     analyser::metric_accumulator::MetricAccumulator metric_accumulator;
     {
-        using namespace analyser::metric_accumulator;
+        using namespace analyser::metric_accumulator::metric_accumulator_impl;
 
         metric_accumulator.RegisterAccumulator(
-            parameters_mptr->Name(), std::make_unique<metric_accumulator_impl::AverageAccumulator>()
+            parameters_mptr->Name(), std::make_shared<AverageAccumulator>()
         );
         metric_accumulator.RegisterAccumulator(
-            code_lines_mptr->Name(), std::make_unique<metric_accumulator_impl::SumAverageAccumulator>()
+            code_lines_mptr->Name(), std::make_shared<SumAverageAccumulator>()
         );
         metric_accumulator.RegisterAccumulator(
-            cyclomatic_mptr->Name(), std::make_unique<metric_accumulator_impl::SumAverageAccumulator>()
+            cyclomatic_mptr->Name(), std::make_shared<SumAverageAccumulator>()
         );
     }
 
-    std::ranges::for_each(analyser::SplitByFiles(analyseResults),
-        [&metric_accumulator](const auto &p) {
-            const auto &[file_name, chunk] = p;
-            metric_accumulator.ResetAccumulators();
-            analyser::AccumulateFunctionAnalysis(chunk, metric_accumulator);
-            analyser::PrintAccumulatedAnalysisForFile(file_name, metric_accumulator);
-        }
-    );
+    const auto accumulated_lambda = [&](const auto &chunk){
+        using namespace analyser::metric_accumulator::metric_accumulator_impl;
 
-    std::ranges::for_each(analyser::SplitByClasses(analyseResults),
-        [&metric_accumulator](const auto &p) {
-            const auto &[class_name, chunk] = p;
-            metric_accumulator.ResetAccumulators();
-            analyser::AccumulateFunctionAnalysis(chunk, metric_accumulator);
-            analyser::PrintAccumulatedAnalysisForClass(class_name, metric_accumulator);
-        }
-    );
+        metric_accumulator.ResetAccumulators();
+        analyser::AccumulateFunctionAnalysis(chunk, metric_accumulator);
 
-    metric_accumulator.ResetAccumulators();
-    analyser::AccumulateFunctionAnalysis(analyseResults, metric_accumulator);
-    analyser::PrintAccumulatedAnalysisTotal(metric_accumulator);
+        const auto code_lines_acc = metric_accumulator.GetFinalizedAccumulator<SumAverageAccumulator>(
+            code_lines_mptr->Name()
+        );
+        std::println("\t{}: {}", code_lines_mptr->Name(), code_lines_acc);
+
+        const auto cyclomatic_acc = metric_accumulator.GetFinalizedAccumulator<SumAverageAccumulator>(
+            cyclomatic_mptr->Name()
+        );
+        std::println("\t{}: {}", cyclomatic_mptr->Name(), cyclomatic_acc);
+
+        const auto parameters_acc = metric_accumulator.GetFinalizedAccumulator<AverageAccumulator>(
+            parameters_mptr->Name()
+        );
+        std::println("\t{}: {}", parameters_mptr->Name(), parameters_acc);
+    };
+
+    {
+        std::ranges::for_each(
+            analyser::SplitByFiles(analyseResults),
+            [&](const auto &p) {
+                const auto &[file_name, chunk] = p;
+                std::println("\nAccumulated Analysis for file {}", file_name);
+                accumulated_lambda(chunk);
+            }
+        );
+    }
+    {
+        std::ranges::for_each(
+            analyser::SplitByClasses(analyseResults),
+            [&](const auto &p) {
+                const auto &[class_name, chunk] = p;
+                std::println("\nAccumulated Analysis for class {}", class_name);
+                accumulated_lambda(chunk);
+            }
+        );
+    }
+    {
+        std::println("\nAccumulated Analysis total");
+        accumulated_lambda(analyseResults);
+    }
 
     return 0;
 }

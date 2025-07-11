@@ -24,3 +24,22 @@ private:
 };
 
 }  // namespace analyser::metric_accumulator::metric_accumulator_impl
+
+namespace std {
+
+using namespace analyser::metric_accumulator::metric_accumulator_impl;
+
+template <>
+struct formatter<SumAverageAccumulator> {
+    template <typename FormatContext>
+    auto format(const SumAverageAccumulator &acc, FormatContext &fc) const {
+        auto val = acc.Get();
+        format_to(fc.out(), "sum = {}, avg = {:.3}", val.sum, val.average);
+        return fc.out();
+    }
+    constexpr auto parse(format_parse_context &ctx) {
+        return ctx.begin();  // Просто игнорируем пользовательский формат
+    }
+};
+
+}  // namespace std
