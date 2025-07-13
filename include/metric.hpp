@@ -9,8 +9,8 @@ namespace analyser::metric {
 
 struct MetricResult {
     using ValueType = size_t;
-    std::string metric_name;
-    ValueType metric_value;
+    const std::string metric_name;
+    const ValueType metric_value;
 };
 
 struct IMetric {

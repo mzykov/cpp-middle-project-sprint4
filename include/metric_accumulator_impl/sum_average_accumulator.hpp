@@ -8,7 +8,7 @@ struct SumAverageAccumulator final : public IAccumulator {
     struct SumAverage {
         int sum;
         double average;
-        auto operator<=>(const SumAverage &) const = default;
+        constexpr auto operator<=>(const SumAverage &) const = default;
     };
 
     void Accumulate(const metric::MetricResult &metric_result) override;
@@ -33,7 +33,7 @@ template <>
 struct formatter<SumAverageAccumulator> {
     template <typename FormatContext>
     auto format(const SumAverageAccumulator &acc, FormatContext &fc) const {
-        auto val = acc.Get();
+        const auto val = acc.Get();
         format_to(fc.out(), "sum = {}, avg = {:.3}", val.sum, val.average);
         return fc.out();
     }

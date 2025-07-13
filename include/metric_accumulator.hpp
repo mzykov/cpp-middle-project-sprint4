@@ -19,7 +19,7 @@ protected:
 
 struct MetricAccumulator {
     template <typename Accumulator>
-    void RegisterAccumulator(const std::string &metric_name, std::shared_ptr<Accumulator> acc) {
+    void RegisterAccumulator(const std::string &metric_name, const std::shared_ptr<Accumulator> acc) {
         accumulators_[metric_name] = acc;
     }
 

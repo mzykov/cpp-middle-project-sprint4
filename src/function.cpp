@@ -29,8 +29,9 @@ std::vector<Function> FunctionExtractor::ProcessOneFile(const file::File &file) 
     return result;
 }
 
-std::optional<std::pair<Function, size_t>>
-FunctionExtractor::processASTFragment(const file::File &file, std::string_view ast, size_t start_parsing_at) const {
+std::optional<std::pair<Function, size_t>> FunctionExtractor::processASTFragment(const file::File &file,
+                                                                                 std::string_view ast,
+                                                                                 const size_t start_parsing_at) const {
     const auto data = ast_extractor_.ExtractFunctionDefinitionASTFragment(ast, start_parsing_at);
 
     if (!data) {

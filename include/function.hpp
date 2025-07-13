@@ -19,10 +19,10 @@ public:
     const ast_extractor::ASTExtractor &GetAstExtractor() const { return ast_extractor_; }
 
 private:
-    ast_extractor::ASTExtractor ast_extractor_;
+    const ast_extractor::ASTExtractor ast_extractor_{};
 
     std::optional<std::pair<Function, size_t>> processASTFragment(const file::File &file, std::string_view ast,
-                                                                  size_t start_parsing_at) const;
+                                                                  const size_t start_parsing_at = 0) const;
 
     std::string getNameFromSource(const ast::Rect &rect, const std::vector<std::string> &lines) const;
 };

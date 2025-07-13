@@ -42,10 +42,10 @@ public:
     ExtractRect(std::string_view ast, const size_t start_parsing_at = 0) const;
 
     std::optional<ast::Rect>
-    FindEnclosingClass(std::string_view full_ast, const ast::Rect &func_rect, const size_t start_parsing_at = 0) const;
+    FindEnclosingClass(std::string_view full_ast, const ast::Rect &function_rect, const size_t start_parsing_at = 0) const;
 
     std::optional<std::string>
-    FindEnclosingDecoratorAST(std::string_view full_ast, const ast::Rect &func_rect, const size_t start_parsing_at = 0) const;
+    FindEnclosingDecoratorAST(std::string_view full_ast, const ast::Rect &function_rect, const size_t start_parsing_at = 0) const;
 
     size_t
     FindPositionAfterFunctionDefinition(std::string_view ast, const size_t start_parsing_at = 0) const;
@@ -54,7 +54,7 @@ public:
     FirstFunctionDefinitionAfterDecorator(std::string_view decorated_ast) const;
 
     std::optional<ast::Rect>
-    GetNameLocation(std::string_view func_ast) const;
+    GetNameLocation(std::string_view function_ast) const;
 
 private:
     static constexpr std::array<std::string_view, 12> cyclomatic_keywords_{{
@@ -76,7 +76,7 @@ private:
     extractPosition(std::string_view ast, const size_t start_parsing_at = 0) const;
 
     std::optional<std::string>
-    findEnclosingParentEntityAST(std::string_view full_ast, std::string_view marker, const ast::Rect &func_rect, const size_t start_parsing_at = 0) const;
+    findEnclosingParentEntityAST(std::string_view full_ast, std::string_view marker, const ast::Rect &function_rect, const size_t start_parsing_at = 0) const;
 };
 // clang-format on
 }  // namespace analyser::ast_extractor

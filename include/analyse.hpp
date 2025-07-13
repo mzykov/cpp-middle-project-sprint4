@@ -30,14 +30,14 @@ void PrintAnalyseResults(const auto &analysis) {
     using namespace std::string_literals;
 
     std::ranges::for_each(analysis, [](const auto &p) {
-        const auto &[func, results] = p;
-        std::string headline = func.file_name;
+        const auto &[function, results] = p;
+        std::string headline = function.file_name;
 
-        if (func.class_name) {
-            headline += "::"s + *func.class_name;
+        if (function.class_name) {
+            headline += "::"s + function.class_name.value();
         }
 
-        headline += "::"s + func.function_name;
+        headline += "::"s + function.function_name;
         std::print("\n{}\n", headline);
 
         std::ranges::for_each(results, [](const auto &m) { std::print("\t{}: {}\n", m.metric_name, m.metric_value); });

@@ -44,17 +44,6 @@ struct LinesInterval {
     constexpr inline bool IsOneLine() const { return start_line == end_line; }
 };
 
-struct ASTreeNode {
-    ASTreeNode() = default;
-    ASTreeNode(const std::string &node_name) : name{node_name}, rect{} {}
-    ASTreeNode(const std::string &node_name, Rect node_rect) : name{node_name}, rect{node_rect} {}
-    std::string name;
-    Rect rect;
-    std::vector<std::unique_ptr<ASTreeNode>> children;
-};
-
-std::pair<std::string, size_t> extractNodeName(std::string_view s, size_t start_parsing_at);
-
 }  // namespace analyser::ast
 
 namespace std {
