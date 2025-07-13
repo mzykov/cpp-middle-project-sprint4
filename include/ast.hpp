@@ -11,11 +11,11 @@ namespace analyser::ast {
 
 struct Position {
     using ValueType = size_t;
-    ValueType line = 0;
-    ValueType col = 0;
-    auto operator<=>(const Position &) const = default;
+    const ValueType line = 0;
+    const ValueType col = 0;
+    constexpr auto operator<=>(const Position &) const = default;
 
-    friend std::size_t hash_value(const Position &p) {
+    constexpr friend std::size_t hash_value(const Position &p) {
         std::size_t seed = 0;
         boost::hash_combine(seed, p.line);
         boost::hash_combine(seed, p.col);
@@ -28,26 +28,20 @@ using Rect = std::pair<Position, Position>;
 struct LinesInterval {
     using ValueType = Position::ValueType;
 
-    LinesInterval() = default;
-    LinesInterval(const LinesInterval &other) : start_line(other.start_line), end_line(other.end_line) {}
-    LinesInterval(const ValueType line) : start_line(line), end_line(line) {}
-    LinesInterval(const ValueType start, const ValueType end) : start_line(start), end_line(end) {}
-    LinesInterval(const Rect &r) : start_line(std::get<0>(r).line), end_line(std::get<1>(r).line) {}
+    constexpr LinesInterval() = default;
+    constexpr LinesInterval(const LinesInterval &other) : start_line(other.start_line), end_line(other.end_line) {}
+    constexpr LinesInterval(const ValueType line) : start_line(line), end_line(line) {}
+    constexpr LinesInterval(const ValueType start, const ValueType end) : start_line(start), end_line(end) {}
+    constexpr LinesInterval(const Rect &r) : start_line(std::get<0>(r).line), end_line(std::get<1>(r).line) {}
 
-    LinesInterval &operator=(const LinesInterval &other) {
-        start_line = other.start_line;
-        end_line = other.end_line;
-        return *this;
-    }
+    const ValueType start_line = 0;
+    const ValueType end_line = 0;
 
-    ValueType start_line = 0;
-    ValueType end_line = 0;
-
-    inline bool Contains(const LinesInterval &other) const {
+    constexpr inline bool Contains(const LinesInterval &other) const {
         return start_line <= other.start_line && other.end_line <= end_line;
     }
 
-    inline bool IsOneLine() const { return start_line == end_line; }
+    constexpr inline bool IsOneLine() const { return start_line == end_line; }
 };
 
 struct ASTreeNode {

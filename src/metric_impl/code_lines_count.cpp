@@ -8,20 +8,22 @@ namespace analyser::metric::metric_impl {
 MetricResult::ValueType CodeLinesCountMetric::CalculateImpl(const function::Function &function,
                                                             const ast_extractor::ASTExtractor &ast_extractor) const {
     std::unordered_set<size_t> res;
-
     auto comments = ast_extractor.ExtractAllCommentLineNumbers(function.ast);
 
-    auto func_data = ast_extractor.ExtractRect(function.ast, 0);
-    if (!func_data) {
+    constexpr size_t start_parsing_at = 0;
+    const auto function_data = ast_extractor.ExtractRect(function.ast, start_parsing_at);
+
+    if (!function_data) {
         return static_cast<MetricResult::ValueType>(res.size());
     }
-    auto [func_rect, continue_parsing_at] = *func_data;
+
+    auto [function_rect, continue_parsing_at] = *function_data;
 
     std::stack<ast::LinesInterval> s;
-    s.push(ast::LinesInterval{func_rect});
+    s.push(ast::LinesInterval{function_rect});
 
     while (!s.empty()) {
-        auto next_data = ast_extractor.ExtractRect(function.ast, continue_parsing_at);
+        const auto next_data = ast_extractor.ExtractRect(function.ast, continue_parsing_at);
 
         if (!next_data) {
             while (!s.empty()) {
@@ -31,16 +33,19 @@ MetricResult::ValueType CodeLinesCountMetric::CalculateImpl(const function::Func
             break;
         }
 
-        continue_parsing_at = std::get<size_t>(*next_data);
+        const auto [next_rect, further_parsing_at] = *next_data;
+        continue_parsing_at = further_parsing_at;
 
-        auto spanning_interval = s.top();
-        const auto next_interval = ast::LinesInterval{std::get<ast::Rect>(*next_data)};
+        const auto next_interval = ast::LinesInterval{next_rect};
 
-        while (!s.empty() && !spanning_interval.Contains(next_interval)) {
-            res.insert(spanning_interval.start_line);
-            s.pop();
-            if (!s.empty()) {
-                spanning_interval = s.top();
+        while (!s.empty()) {
+            const auto spanning_interval = s.top();
+
+            if (spanning_interval.Contains(next_interval)) {
+                break;
+            } else {
+                res.insert(spanning_interval.start_line);
+                s.pop();
             }
         }
 
