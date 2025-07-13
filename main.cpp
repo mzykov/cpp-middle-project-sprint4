@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     metric_extractor.RegisterMetric(std::move(parameters_mptr));
 
     auto analyseResults = analyser::AnalyseFunctions(
-        options.GetFiles(), metric_extractor
+        options.GetFileNames(), metric_extractor
     );
 
     analyser::PrintAnalyseResults(analyseResults);

@@ -14,7 +14,7 @@ public:
 
     bool Parse(int argc, char *argv[]);
 
-    const std::vector<std::string> &GetFiles() const { return files_; }
+    const std::vector<std::string> &GetFileNames() const { return files_; }
 
 private:
     std::vector<std::string> files_;
