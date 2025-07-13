@@ -8,7 +8,7 @@ namespace analyser::function {
 struct Function {
     std::string file_name;
     std::optional<std::string> class_name;
-    std::string func_name;
+    std::string function_name;
     std::string ast;
     bool is_decorated = false;
 };

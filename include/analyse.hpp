@@ -37,7 +37,7 @@ void PrintAnalyseResults(const auto &analysis) {
             headline += "::"s + *func.class_name;
         }
 
-        headline += "::"s + func.func_name;
+        headline += "::"s + func.function_name;
         std::print("\n{}\n", headline);
 
         std::ranges::for_each(results, [](const auto &m) { std::print("\t{}: {}\n", m.metric_name, m.metric_value); });

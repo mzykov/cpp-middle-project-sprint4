@@ -19,10 +19,10 @@ std::vector<Function> FunctionExtractor::ProcessOneFile(const file::File &file) 
         const auto data = processASTFragment(file, ast_fragment, continue_parsing_at);
 
         if (data) {
-            const auto &[func, further_parsing_at] = *data;
-            result.push_back(func);
+            const auto &[function, further_parsing_at] = *data;
+            result.push_back(function);
             q.emplace(ast_fragment, further_parsing_at);
-            q.emplace(func.ast, ast_extractor_.FindPositionAfterFunctionDefinition(func.ast));
+            q.emplace(function.ast, ast_extractor_.FindPositionAfterFunctionDefinition(function.ast));
         }
     }
 
@@ -37,14 +37,14 @@ FunctionExtractor::processASTFragment(const file::File &file, std::string_view a
         return {};
     }
 
-    const auto [func_ast, continue_parsing_at] = *data;
-    const auto name_loc = ast_extractor_.GetNameLocation(func_ast);
+    const auto [function_ast, continue_parsing_at] = *data;
+    const auto name_loc = ast_extractor_.GetNameLocation(function_ast);
 
     if (!name_loc) {
         return {};
     }
 
-    const auto func_name = getNameFromSource(*name_loc, file.source_lines);
+    const auto function_name = getNameFromSource(*name_loc, file.source_lines);
 
     std::optional<std::string> class_name;
     if (const auto class_loc = ast_extractor_.FindEnclosingClass(file.ast, *name_loc)) {
@@ -63,16 +63,16 @@ FunctionExtractor::processASTFragment(const file::File &file, std::string_view a
     }
 
     // clang-format off
-    const auto func = Function{
-        .file_name    = file.name,
-        .class_name   = class_name,
-        .func_name    = func_name,
-        .ast          = is_decorated ? *decorated_ast : func_ast,
-        .is_decorated = is_decorated,
+    const auto function = Function{
+        .file_name     = file.name,
+        .class_name    = class_name,
+        .function_name = function_name,
+        .ast           = is_decorated ? *decorated_ast : function_ast,
+        .is_decorated  = is_decorated,
     };
     // clang-format on
 
-    return {{func, continue_parsing_at}};
+    return {{function, continue_parsing_at}};
 }
 
 std::string FunctionExtractor::getNameFromSource(const ast::Rect &rect, const std::vector<std::string> &lines) const {

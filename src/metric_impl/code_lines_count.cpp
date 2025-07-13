@@ -5,13 +5,13 @@
 
 namespace analyser::metric::metric_impl {
 
-MetricResult::ValueType CodeLinesCountMetric::CalculateImpl(const function::Function &f,
-                                                            const ast_extractor::ASTExtractor &e) const {
+MetricResult::ValueType CodeLinesCountMetric::CalculateImpl(const function::Function &function,
+                                                            const ast_extractor::ASTExtractor &ast_extractor) const {
     std::unordered_set<size_t> res;
 
-    auto comments = e.ExtractAllCommentLineNumbers(f.ast);
+    auto comments = ast_extractor.ExtractAllCommentLineNumbers(function.ast);
 
-    auto func_data = e.ExtractRect(f.ast, 0);
+    auto func_data = ast_extractor.ExtractRect(function.ast, 0);
     if (!func_data) {
         return static_cast<MetricResult::ValueType>(res.size());
     }
@@ -21,7 +21,7 @@ MetricResult::ValueType CodeLinesCountMetric::CalculateImpl(const function::Func
     s.push(ast::LinesInterval{func_rect});
 
     while (!s.empty()) {
-        auto next_data = e.ExtractRect(f.ast, continue_parsing_at);
+        auto next_data = ast_extractor.ExtractRect(function.ast, continue_parsing_at);
 
         if (!next_data) {
             while (!s.empty()) {

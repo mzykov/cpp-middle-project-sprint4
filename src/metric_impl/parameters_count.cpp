@@ -2,13 +2,13 @@
 
 namespace analyser::metric::metric_impl {
 
-MetricResult::ValueType ParametersCountMetric::CalculateImpl(const function::Function &f,
-                                                             const ast_extractor::ASTExtractor &e) const {
-    const auto data = e.ExtractParametersASTFragment(f.ast);
+MetricResult::ValueType ParametersCountMetric::CalculateImpl(const function::Function &function,
+                                                             const ast_extractor::ASTExtractor &ast_extractor) const {
+    const auto data = ast_extractor.ExtractParametersASTFragment(function.ast);
 
     if (data) {
         const auto [parameters_ast, _] = *data;
-        return e.CountFirstLevelASTNodes(parameters_ast);
+        return ast_extractor.CountFirstLevelASTNodes(parameters_ast);
     } else {
         return 0;
     }

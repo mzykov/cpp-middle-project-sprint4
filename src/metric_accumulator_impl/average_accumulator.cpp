@@ -1,7 +1,5 @@
 #include "metric_accumulator_impl/average_accumulator.hpp"
 
-#include <print>
-
 namespace analyser::metric_accumulator::metric_accumulator_impl {
 
 void AverageAccumulator::Accumulate(const metric::MetricResult &metric_result) {

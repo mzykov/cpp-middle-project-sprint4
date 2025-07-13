@@ -9,8 +9,8 @@ public:
     std::string Name() const override { return "ParametersCount"; }
 
 protected:
-    MetricResult::ValueType CalculateImpl(const function::Function &f,
-                                          const ast_extractor::ASTExtractor &e) const override;
+    MetricResult::ValueType CalculateImpl(const function::Function &function,
+                                          const ast_extractor::ASTExtractor &ast_extractor) const override;
 };
 
 }  // namespace analyser::metric::metric_impl

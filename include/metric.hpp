@@ -17,16 +17,16 @@ struct IMetric {
     virtual ~IMetric() = default;
     virtual std::string Name() const = 0;
 
-    MetricResult Calculate(const function::Function &f, const ast_extractor::ASTExtractor &e) const {
+    MetricResult Calculate(const function::Function &function, const ast_extractor::ASTExtractor &ast_extractor) const {
         return MetricResult{
             .metric_name = Name(),
-            .metric_value = CalculateImpl(f, e),
+            .metric_value = CalculateImpl(function, ast_extractor),
         };
     }
 
 protected:
-    virtual MetricResult::ValueType CalculateImpl(const function::Function &f,
-                                                  const ast_extractor::ASTExtractor &e) const = 0;
+    virtual MetricResult::ValueType CalculateImpl(const function::Function &function,
+                                                  const ast_extractor::ASTExtractor &ast_extractor) const = 0;
 };
 
 using MetricResults = std::vector<MetricResult>;
