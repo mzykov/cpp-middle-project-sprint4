@@ -28,7 +28,7 @@ ASTExtractor::ExtractCommentASTFragment(std::string_view ast, const size_t start
 std::unordered_set<size_t> ASTExtractor::ExtractAllCommentLineNumbers(std::string_view ast,
                                                                       const size_t start_parsing_at) const {
     std::unordered_set<size_t> res;
-    std::queue<std::pair<std::string, size_t>> q;
+    std::queue<std::pair<std::string_view, size_t>> q;
 
     q.emplace(ast, start_parsing_at);
 
@@ -181,7 +181,7 @@ std::optional<std::string> ASTExtractor::findEnclosingParentEntityAST(std::strin
                                                                       const ast::Rect &function_rect,
                                                                       const size_t start_parsing_at) const {
     std::optional<std::string> res;
-    std::queue<std::pair<std::string, size_t>> q;
+    std::queue<std::pair<std::string_view, size_t>> q;
 
     const auto function_interval = ast::LinesInterval{function_rect};
     q.emplace(ast, start_parsing_at);
