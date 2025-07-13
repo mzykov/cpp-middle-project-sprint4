@@ -50,6 +50,9 @@ add_executable(${PROJECT_NAME}_tests "${TEST_SRC_FILES}")
 target_link_libraries(${PROJECT_NAME}_tests
     PRIVATE
         ast_extractor
+	file
+	function
+	metric
         GTest::GTest
         GTest::Main
 )
