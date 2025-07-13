@@ -7,26 +7,22 @@ namespace analyser::ast_extractor {
 
 std::optional<std::pair<std::string, size_t>>
 ASTExtractor::ExtractFunctionDefinitionASTFragment(std::string_view ast, const size_t start_parsing_at) const {
-    std::string_view marker = "(function_definition";
-    return ExtractASTFragment(ast, marker, start_parsing_at);
+    return ExtractASTFragment(ast, getDefinitionKeyword("function"), start_parsing_at);
 }
 
 std::optional<std::pair<std::string, size_t>>
 ASTExtractor::ExtractIdentifierASTFragment(std::string_view ast, const size_t start_parsing_at) const {
-    std::string_view marker = "(identifier";
-    return ExtractASTFragment(ast, marker, start_parsing_at);
+    return ExtractASTFragment(ast, getDefinitionKeyword("identifier"), start_parsing_at);
 }
 
 std::optional<std::pair<std::string, size_t>>
 ASTExtractor::ExtractParametersASTFragment(std::string_view ast, const size_t start_parsing_at) const {
-    std::string_view marker = "(parameters";
-    return ExtractASTFragment(ast, marker, start_parsing_at);
+    return ExtractASTFragment(ast, getDefinitionKeyword("parameters"), start_parsing_at);
 }
 
 std::optional<std::pair<std::string, size_t>>
 ASTExtractor::ExtractCommentASTFragment(std::string_view ast, const size_t start_parsing_at) const {
-    std::string_view marker = "(comment";
-    return ExtractASTFragment(ast, marker, start_parsing_at);
+    return ExtractASTFragment(ast, getDefinitionKeyword("comment"), start_parsing_at);
 }
 
 std::unordered_set<size_t> ASTExtractor::ExtractAllCommentLineNumbers(std::string_view ast,
@@ -62,17 +58,20 @@ std::unordered_set<size_t> ASTExtractor::ExtractAllCommentLineNumbers(std::strin
     return res;
 }
 
-size_t ASTExtractor::CountFirstLevelASTNodes(std::string_view ast) const { return CountNthLevelASTNodes(ast, 1); }
+size_t ASTExtractor::CountFirstLevelASTNodes(std::string_view ast) const {
+    constexpr size_t first_level = 1;
+    return CountNthLevelASTNodes(ast, first_level);
+}
 
 size_t ASTExtractor::CountNthLevelASTNodes(std::string_view ast, const size_t level) const {
-    size_t res = 0, open_braces = 1, end = 1;
+    size_t res = 0, opened_braces = 1, end = 1;
 
-    while (end < ast.length() && open_braces > 0) {
+    while (end < ast.length() && opened_braces > 0) {
         if (ast[end] == '(') {
-            open_braces++;
+            opened_braces++;
         } else if (ast[end] == ')') {
-            open_braces--;
-            if (open_braces == level) {
+            opened_braces--;
+            if (opened_braces == level) {
                 ++res;
             }
         }
@@ -146,7 +145,6 @@ std::optional<std::pair<ast::Rect, size_t>> ASTExtractor::ExtractRect(std::strin
 
 std::optional<ast::Rect> ASTExtractor::GetNameLocation(std::string_view ast) const {
     const auto data = ExtractIdentifierASTFragment(ast);
-
     if (!data)
         return {};
 
@@ -162,10 +160,10 @@ std::optional<ast::Rect> ASTExtractor::GetNameLocation(std::string_view ast) con
     }
 }
 
-std::optional<ast::Rect> ASTExtractor::FindEnclosingClass(std::string_view ast, const ast::Rect &func_rect,
+std::optional<ast::Rect> ASTExtractor::FindEnclosingClass(std::string_view ast, const ast::Rect &function_rect,
                                                           const size_t start_parsing_at) const {
-    std::string_view marker = "(class_definition";
-    const auto ast_data = findEnclosingParentEntityAST(ast, marker, func_rect, start_parsing_at);
+    const auto ast_data =
+        findEnclosingParentEntityAST(ast, getDefinitionKeyword("class"), function_rect, start_parsing_at);
 
     if (ast_data) {
         return GetNameLocation(*ast_data);
@@ -174,19 +172,18 @@ std::optional<ast::Rect> ASTExtractor::FindEnclosingClass(std::string_view ast, 
     }
 }
 
-std::optional<std::string> ASTExtractor::FindEnclosingDecoratorAST(std::string_view ast, const ast::Rect &func_rect,
+std::optional<std::string> ASTExtractor::FindEnclosingDecoratorAST(std::string_view ast, const ast::Rect &function_rect,
                                                                    const size_t start_parsing_at) const {
-    std::string_view marker = "(decorated_definition";
-    return findEnclosingParentEntityAST(ast, marker, func_rect, start_parsing_at);
+    return findEnclosingParentEntityAST(ast, getDefinitionKeyword("decorated"), function_rect, start_parsing_at);
 }
 
 std::optional<std::string> ASTExtractor::findEnclosingParentEntityAST(std::string_view ast, std::string_view marker,
-                                                                      const ast::Rect &func_rect,
+                                                                      const ast::Rect &function_rect,
                                                                       const size_t start_parsing_at) const {
     std::optional<std::string> res;
     std::queue<std::pair<std::string, size_t>> q;
 
-    const auto func_interval = ast::LinesInterval{func_rect};
+    const auto function_interval = ast::LinesInterval{function_rect};
     q.emplace(ast, start_parsing_at);
 
     while (!q.empty()) {
@@ -203,7 +200,7 @@ std::optional<std::string> ASTExtractor::findEnclosingParentEntityAST(std::strin
                 const auto [parent_rect, _] = *rect_data;
                 const auto parent_interval = ast::LinesInterval{parent_rect};
 
-                if (parent_interval.Contains(func_interval)) {
+                if (parent_interval.Contains(function_interval)) {
                     res = nested_ast;
                     constexpr std::string_view opened_brace = "(";
                     q.emplace(nested_ast, opened_brace.length());
@@ -219,7 +216,7 @@ std::optional<std::string> ASTExtractor::findEnclosingParentEntityAST(std::strin
 }
 
 size_t ASTExtractor::FindPositionAfterFunctionDefinition(std::string_view ast, const size_t start_parsing_at) const {
-    constexpr std::string_view marker = "(function_definition";  // TODO: remove this duplicate definition
+    const auto marker = getDefinitionKeyword("function");
     const auto pos = ast.find(marker, start_parsing_at);
 
     if (pos == std::string::npos) {
@@ -233,8 +230,8 @@ std::optional<ast::Rect> ASTExtractor::FirstFunctionDefinitionAfterDecorator(std
     const auto data = ExtractFunctionDefinitionASTFragment(ast);
 
     if (data) {
-        const auto [func_ast, _] = *data;
-        return GetNameLocation(func_ast);
+        const auto [function_ast, _] = *data;
+        return GetNameLocation(function_ast);
     } else {
         return {};
     }

@@ -77,8 +77,7 @@ std::optional<std::pair<Function, size_t>> FunctionExtractor::processASTFragment
 }
 
 std::string FunctionExtractor::getNameFromSource(const ast::Rect &rect, const std::vector<std::string> &lines) const {
-    const auto start = std::get<0>(rect);
-    const auto end = std::get<1>(rect);
+    const auto [start, end] = rect;
 
     if (start.line >= lines.size())
         return "unknown";

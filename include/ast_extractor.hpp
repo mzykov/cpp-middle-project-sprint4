@@ -3,6 +3,7 @@
 #include <array>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 
 #include "ast.hpp"
@@ -17,8 +18,6 @@ public:
 
     size_t
     CountNthLevelASTNodes(std::string_view ast, const size_t level) const;
-
-    const auto &CyclomaticKeywords() const noexcept { return cyclomatic_keywords_; }
 
     std::unordered_set<size_t>
     ExtractAllCommentLineNumbers(std::string_view ast, const size_t start_parsing_at = 0) const;
@@ -56,27 +55,42 @@ public:
     std::optional<ast::Rect>
     GetNameLocation(std::string_view function_ast) const;
 
-private:
-    static constexpr std::array<std::string_view, 12> cyclomatic_keywords_{{
-        "(assert_statement",
-        "(if_statement",
-        "(elif_clause",
-        "(else_clause",
-        "(conditional_expression",
-        "(match_statement",
-        "(case_clause",
-        "(for_statement",
-        "(while_statement",
-        "(try_statement",
-        "(except_clause",
-        "(finally_clause"
-    }};
+    inline const auto &CyclomaticKeywords() const noexcept {
+        static constexpr std::array<std::string_view, 12> cyclomatic_keywords {{
+            "(assert_statement",
+            "(if_statement",
+            "(elif_clause",
+            "(else_clause",
+            "(conditional_expression",
+            "(match_statement",
+            "(case_clause",
+            "(for_statement",
+            "(while_statement",
+            "(try_statement",
+            "(except_clause",
+            "(finally_clause"
+        }};
+        return cyclomatic_keywords;
+    }
 
+private:
     std::optional<std::pair<ast::Position, size_t>>
     extractPosition(std::string_view ast, const size_t start_parsing_at = 0) const;
 
     std::optional<std::string>
     findEnclosingParentEntityAST(std::string_view full_ast, std::string_view marker, const ast::Rect &function_rect, const size_t start_parsing_at = 0) const;
+
+    const auto &getDefinitionKeyword(std::string_view key) const {
+        const std::unordered_map<std::string_view, std::string_view> definition_keywords {
+            {"class", "(class_definition"},
+            {"comment", "(comment"},
+            {"decorated", "(decorated_definition"},
+            {"function", "(function_definition"},
+            {"identifier", "(identifier"},
+            {"parameters", "(parameters"},
+        };
+        return definition_keywords.at(key);
+    }
 };
 // clang-format on
 }  // namespace analyser::ast_extractor

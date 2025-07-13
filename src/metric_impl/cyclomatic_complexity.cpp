@@ -9,11 +9,13 @@ MetricResult::ValueType
 CyclomaticComplexityMetric::CalculateImpl(const function::Function &function,
                                           const ast_extractor::ASTExtractor &ast_extractor) const {
     MetricResult::ValueType res = 0;
-    std::queue<std::pair<std::string, size_t>> q;
+    std::queue<std::pair<std::string_view, size_t>> q;
     std::unordered_set<ast::Rect> already;
 
     constexpr size_t start_parsing_at = 0;
-    q.emplace(function.ast, start_parsing_at);
+    std::string_view function_ast = function.ast;
+
+    q.emplace(function_ast, start_parsing_at);
 
     while (!q.empty()) {
         const auto [ast, continue_parsing_at] = q.front();
