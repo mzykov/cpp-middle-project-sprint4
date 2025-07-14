@@ -1,4 +1,5 @@
 #include "analyse.hpp"
+#include "analyse_split.hpp"
 #include "cmd_options.hpp"
 #include "file.hpp"
 #include "function.hpp"

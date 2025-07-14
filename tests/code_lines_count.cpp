@@ -11,7 +11,7 @@
 namespace analyser::metric::metric_impl::test {
 
 // clang-format off
-TEST(TestAnalyseFunctions, TestCodeLinesCountSamplePy) {
+TEST(TestAnalyseFunctions, TestCodeLinesCount) {
     // given
     const std::vector<std::string> given_file_names{
         "../files/sample.py",

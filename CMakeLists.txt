@@ -22,7 +22,7 @@ include_directories(
 
 set(target analyser)
 
-add_executable(${target} main.cpp)
+add_executable(${target} main.cpp src/analyse.cpp)
 
 target_include_directories(${target}
     PUBLIC
@@ -49,6 +49,7 @@ add_executable(${PROJECT_NAME}_tests "${TEST_SRC_FILES}")
 
 target_link_libraries(${PROJECT_NAME}_tests
     PRIVATE
+	analyse
         ast_extractor
 	file
 	function
