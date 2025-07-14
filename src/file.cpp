@@ -12,11 +12,11 @@ File::File(std::string_view file_name) : name{file_name} {
         throw std::invalid_argument("Can't open file " + name);
     }
 
-    ast = ReadAST();
-    source_lines = ReadSourceFile(file);
+    ast = readAST();
+    source_lines = readSourceFile(file);
 }
 
-std::vector<std::string> File::ReadSourceFile(std::ifstream &file) {
+std::vector<std::string> File::readSourceFile(std::ifstream &file) {
     std::vector<std::string> lines;
     std::string line;
     while (std::getline(file, line)) {
@@ -25,12 +25,11 @@ std::vector<std::string> File::ReadSourceFile(std::ifstream &file) {
     return lines;
 }
 
-std::string File::ReadAST() try {
+std::string File::readAST() try {
     std::string result;
     std::array<char, 256> buffer;
 
-    const std::string tree_sitter_cmd = "tree-sitter parse --config-path ~/.config/tree-sitter/config.json ";
-    const auto full_cmd = tree_sitter_cmd + name + " 2>&1";
+    const auto tree_sitter_cmd = getASTBuilberCmd(name);
 
     using PipePtr = std::unique_ptr<FILE, decltype([](FILE *pipe) {
                                         if (!pipe)
@@ -48,7 +47,7 @@ std::string File::ReadAST() try {
                                         }
                                     })>;
 
-    FILE *raw_pipe = popen(full_cmd.c_str(), "r");
+    FILE *raw_pipe = popen(tree_sitter_cmd.c_str(), "r");
     if (!raw_pipe) {
         throw std::runtime_error("Failed to execute command: " + std::string{std::strerror(errno)});
     }
@@ -61,6 +60,15 @@ std::string File::ReadAST() try {
     return result;
 } catch (const std::exception &e) {
     throw std::runtime_error("Error while getting ast from " + name);
+}
+
+std::string File::getASTBuilberCmd(std::string_view file_name) {
+    std::string cmd = "tree-sitter parse ";
+    if (const auto env_var = std::getenv("TREE_SITTER_CONFIG_PATH"); env_var != nullptr) {
+        cmd = cmd + "--config-path " + env_var;
+    }
+    cmd = cmd + file_name.data() + " 2>&1";
+    return cmd;
 }
 
 }  // namespace analyser::file

@@ -13,8 +13,9 @@ struct File {
     std::vector<std::string> source_lines;
 
 private:
-    std::vector<std::string> ReadSourceFile(std::ifstream &file);
-    std::string ReadAST();
+    std::vector<std::string> readSourceFile(std::ifstream &file);
+    std::string readAST();
+    std::string getASTBuilberCmd(std::string_view file_name);
 };
 
 }  // namespace analyser::file
