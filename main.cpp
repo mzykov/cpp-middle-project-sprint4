@@ -8,6 +8,9 @@
 #include "metric_accumulator_impl/accumulators.hpp"
 #include "metric_impl/metrics.hpp"
 
+#include <cstdlib>
+#include <iostream>
+
 int main(int argc, char *argv[]) {
     analyser::cmd::ProgramOptions options;
     options.Parse(argc, argv);
@@ -23,9 +26,16 @@ int main(int argc, char *argv[]) {
     auto parameters_mptr = std::make_unique<analyser::metric::metric_impl::ParametersCountMetric>();
     metric_extractor.RegisterMetric(std::move(parameters_mptr));
 
-    auto analyseResults = analyser::AnalyseFunctions(
-        options.GetFileNames(), metric_extractor
-    );
+    std::vector<std::pair<analyser::function::Function, analyser::metric::MetricResults>> analyseResults;
+
+    try {
+        analyseResults = analyser::AnalyseFunctions(
+            options.GetFileNames(), metric_extractor
+        );
+    } catch (const std::exception &e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
     analyser::PrintAnalyseResults(analyseResults);
 
@@ -91,5 +101,5 @@ int main(int argc, char *argv[]) {
         accumulated_lambda(analyseResults);
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
