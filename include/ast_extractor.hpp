@@ -56,19 +56,19 @@ public:
     GetNameLocation(std::string_view function_ast) const;
 
     inline const auto &CyclomaticKeywords() const noexcept {
-        static constexpr std::array<std::string_view, 12> cyclomatic_keywords {{
-            "(assert_statement",
-            "(if_statement",
-            "(elif_clause",
-            "(else_clause",
-            "(conditional_expression",
-            "(match_statement",
-            "(case_clause",
-            "(for_statement",
-            "(while_statement",
-            "(try_statement",
-            "(except_clause",
-            "(finally_clause"
+        static constexpr std::array<std::pair<std::string_view, size_t>, 12> cyclomatic_keywords {{
+            {"(assert_statement", 1},
+            {"(if_statement", 1},
+            {"(elif_clause", 1},
+            {"(else_clause", 1},
+            {"(conditional_expression", 2}, // ternary
+            {"(match_statement", 1},
+            {"(case_clause", 1},
+            {"(for_statement", 1},
+            {"(while_statement", 1},
+            {"(try_statement", 1},
+            {"(except_clause", 1},
+            {"(finally_clause", 1}
         }};
         return cyclomatic_keywords;
     }
