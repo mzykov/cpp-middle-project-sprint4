@@ -26,8 +26,12 @@ struct MetricAccumulator {
     template <typename Accumulator>
     const Accumulator &GetFinalizedAccumulator(const std::string &metric_name) const {
         auto acc = dynamic_cast<Accumulator *>(accumulators_.at(metric_name).get());
-        acc->Finalize();
-        return *acc;
+        if (acc) {
+            acc->Finalize();
+            return *acc;
+        } else {
+            throw std::runtime_error("No accumulator found for metric " + metric_name);
+        }
     }
 
     void AccumulateNextResults(const metric::MetricResults &metric_results) const;
