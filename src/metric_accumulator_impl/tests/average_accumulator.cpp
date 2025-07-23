@@ -4,7 +4,7 @@
 
 namespace analyser::metric_accumulator::metric_accumulator_impl::test {
 
-TEST(TestAverageAccumulator, TestAccumulate) {
+TEST(TestAverageAccumulator, TestAccumulateSimple) {
     // given
     AverageAccumulator acc;
     const metric::MetricResult given_metric_result{"some metric", 42};
@@ -18,7 +18,7 @@ TEST(TestAverageAccumulator, TestAccumulate) {
     EXPECT_EQ(got_value, given_metric_result.metric_value);
 }
 
-TEST(TestAverageAccumulator, TestTwiceAccumulate) {
+TEST(TestAverageAccumulator, TestAccumulateResultOfTypeInteger) {
     // given
     AverageAccumulator acc;
     const metric::MetricResult given_metric_result{"another metric", 17};
@@ -33,10 +33,10 @@ TEST(TestAverageAccumulator, TestTwiceAccumulate) {
     EXPECT_EQ(got_value, given_metric_result.metric_value);
 }
 
-TEST(TestAverageAccumulator, TestDoubleAccumulate) {
+TEST(TestAverageAccumulator, TestAccumulateResultOfTypeDouble) {
     // given
     AverageAccumulator acc;
-    constexpr double eps = 1e-6, expected_value = 4.5;
+    constexpr double expected_value = 4.5;
 
     // when
     for (int i = 0; i < 10; ++i) {
@@ -46,7 +46,7 @@ TEST(TestAverageAccumulator, TestDoubleAccumulate) {
     const auto got_value = acc.Get();
 
     // then
-    EXPECT_TRUE(std::abs(got_value - expected_value) < eps);
+    EXPECT_DOUBLE_EQ(got_value, expected_value);
 }
 
 TEST(TestAverageAccumulator, TestAccumulateAfterReset) {

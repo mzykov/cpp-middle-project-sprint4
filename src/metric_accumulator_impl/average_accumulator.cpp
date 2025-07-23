@@ -4,7 +4,7 @@ namespace analyser::metric_accumulator::metric_accumulator_impl {
 
 void AverageAccumulator::Accumulate(const metric::MetricResult &metric_result) {
     if (is_finalized_)
-        return;
+        throw std::runtime_error("Using finalized accumulator is not allowed");
     sum_ += metric_result.metric_value;
     ++count_;
 }
