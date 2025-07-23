@@ -22,19 +22,19 @@ public:
     std::unordered_set<size_t>
     ExtractAllCommentLineNumbers(std::string_view ast, const size_t start_parsing_at = 0) const;
 
-    std::optional<std::pair<std::string, size_t>>
+    std::optional<std::pair<std::string_view, size_t>>
     ExtractASTFragment(std::string_view ast, std::string_view marker_started_with_one_opened_brace, const size_t start_parsing_at) const;
 
-    std::optional<std::pair<std::string, size_t>>
+    std::optional<std::pair<std::string_view, size_t>>
     ExtractCommentASTFragment(std::string_view ast, const size_t start_parsing_at = 0) const;
 
-    std::optional<std::pair<std::string, size_t>>
+    std::optional<std::pair<std::string_view, size_t>>
     ExtractFunctionDefinitionASTFragment(std::string_view ast, const size_t start_parsing_at = 0) const;
 
-    std::optional<std::pair<std::string, size_t>>
+    std::optional<std::pair<std::string_view, size_t>>
     ExtractIdentifierASTFragment(std::string_view ast, const size_t start_parsing_at = 0) const;
 
-    std::optional<std::pair<std::string, size_t>>
+    std::optional<std::pair<std::string_view, size_t>>
     ExtractParametersASTFragment(std::string_view ast, const size_t start_parsing_at = 0) const;
 
     std::optional<std::pair<ast::Rect, size_t>>
@@ -43,7 +43,7 @@ public:
     std::optional<ast::Rect>
     FindEnclosingClass(std::string_view full_ast, const ast::Rect &function_rect, const size_t start_parsing_at = 0) const;
 
-    std::optional<std::string>
+    std::optional<std::string_view>
     FindEnclosingDecoratorAST(std::string_view full_ast, const ast::Rect &function_rect, const size_t start_parsing_at = 0) const;
 
     size_t
@@ -77,7 +77,7 @@ private:
     std::optional<std::pair<ast::Position, size_t>>
     extractPosition(std::string_view ast, const size_t start_parsing_at = 0) const;
 
-    std::optional<std::string>
+    std::optional<std::string_view>
     findEnclosingParentEntityAST(std::string_view full_ast, std::string_view marker, const ast::Rect &function_rect, const size_t start_parsing_at = 0) const;
 
     const auto &getDefinitionKeyword(std::string_view key) const {

@@ -68,7 +68,7 @@ std::optional<std::pair<Function, size_t>> FunctionExtractor::processASTFragment
         .file_name     = file.name,
         .class_name    = class_name,
         .function_name = function_name,
-        .ast           = is_decorated ? *decorated_ast : function_ast,
+        .ast           = std::string{is_decorated ? *decorated_ast : function_ast},
         .is_decorated  = is_decorated,
     };
     // clang-format on

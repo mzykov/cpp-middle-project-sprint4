@@ -5,22 +5,22 @@
 
 namespace analyser::ast_extractor {
 
-std::optional<std::pair<std::string, size_t>>
+std::optional<std::pair<std::string_view, size_t>>
 ASTExtractor::ExtractFunctionDefinitionASTFragment(std::string_view ast, const size_t start_parsing_at) const {
     return ExtractASTFragment(ast, getDefinitionKeyword("function"), start_parsing_at);
 }
 
-std::optional<std::pair<std::string, size_t>>
+std::optional<std::pair<std::string_view, size_t>>
 ASTExtractor::ExtractIdentifierASTFragment(std::string_view ast, const size_t start_parsing_at) const {
     return ExtractASTFragment(ast, getDefinitionKeyword("identifier"), start_parsing_at);
 }
 
-std::optional<std::pair<std::string, size_t>>
+std::optional<std::pair<std::string_view, size_t>>
 ASTExtractor::ExtractParametersASTFragment(std::string_view ast, const size_t start_parsing_at) const {
     return ExtractASTFragment(ast, getDefinitionKeyword("parameters"), start_parsing_at);
 }
 
-std::optional<std::pair<std::string, size_t>>
+std::optional<std::pair<std::string_view, size_t>>
 ASTExtractor::ExtractCommentASTFragment(std::string_view ast, const size_t start_parsing_at) const {
     return ExtractASTFragment(ast, getDefinitionKeyword("comment"), start_parsing_at);
 }
@@ -81,12 +81,12 @@ size_t ASTExtractor::CountNthLevelASTNodes(std::string_view ast, const size_t le
     return res;
 }
 
-std::optional<std::pair<std::string, size_t>>
+std::optional<std::pair<std::string_view, size_t>>
 ASTExtractor::ExtractASTFragment(std::string_view ast, std::string_view marker_started_with_one_opened_brace,
                                  const size_t start_parsing_at) const {
     const auto marker_found_at = ast.find(marker_started_with_one_opened_brace, start_parsing_at);
 
-    if (marker_found_at == std::string::npos) {
+    if (marker_found_at == std::string_view::npos) {
         return {};
     }
 
@@ -102,24 +102,24 @@ ASTExtractor::ExtractASTFragment(std::string_view ast, std::string_view marker_s
         end++;
     }
 
-    return {{std::string{ast.substr(marker_found_at, end - marker_found_at)}, end}};
+    return {{ast.substr(marker_found_at, end - marker_found_at), end}};
 }
 
 std::optional<std::pair<ast::Position, size_t>> ASTExtractor::extractPosition(std::string_view ast,
                                                                               const size_t start_parsing_at) const {
     const size_t coord_start = ast.find('[', start_parsing_at);
-    if (coord_start == std::string::npos) {
+    if (coord_start == std::string_view::npos) {
         return {};
     }
 
     const size_t coord_end = ast.find(']', coord_start);
-    if (coord_end == std::string::npos) {
+    if (coord_end == std::string_view::npos) {
         return {};
     }
 
     const auto coords = ast.substr(coord_start + 1, coord_end - coord_start - 1);
     const size_t comma = coords.find(',');
-    if (comma == std::string::npos) {
+    if (comma == std::string_view::npos) {
         return {};
     }
 
@@ -172,15 +172,17 @@ std::optional<ast::Rect> ASTExtractor::FindEnclosingClass(std::string_view ast, 
     }
 }
 
-std::optional<std::string> ASTExtractor::FindEnclosingDecoratorAST(std::string_view ast, const ast::Rect &function_rect,
-                                                                   const size_t start_parsing_at) const {
+std::optional<std::string_view> ASTExtractor::FindEnclosingDecoratorAST(std::string_view ast,
+                                                                        const ast::Rect &function_rect,
+                                                                        const size_t start_parsing_at) const {
     return findEnclosingParentEntityAST(ast, getDefinitionKeyword("decorated"), function_rect, start_parsing_at);
 }
 
-std::optional<std::string> ASTExtractor::findEnclosingParentEntityAST(std::string_view ast, std::string_view marker,
-                                                                      const ast::Rect &function_rect,
-                                                                      const size_t start_parsing_at) const {
-    std::optional<std::string> res;
+std::optional<std::string_view> ASTExtractor::findEnclosingParentEntityAST(std::string_view ast,
+                                                                           std::string_view marker,
+                                                                           const ast::Rect &function_rect,
+                                                                           const size_t start_parsing_at) const {
+    std::optional<std::string_view> res;
     std::queue<std::pair<std::string_view, size_t>> q;
 
     const auto function_interval = ast::LinesInterval{function_rect};
@@ -219,7 +221,7 @@ size_t ASTExtractor::FindPositionAfterFunctionDefinition(std::string_view ast, c
     const auto marker = getDefinitionKeyword("function");
     const auto pos = ast.find(marker, start_parsing_at);
 
-    if (pos == std::string::npos) {
+    if (pos == std::string_view::npos) {
         return pos;
     } else {
         return pos + marker.length();
