@@ -123,7 +123,7 @@ std::optional<std::pair<ast::Position, size_t>> ASTExtractor::extractPosition(st
         return {};
     }
 
-    return {{ast::Position{ToInt(coords.substr(0, comma)), ToInt(coords.substr(comma + 2))}, coord_end}};
+    return {{ast::Position{ToSizeT(coords.substr(0, comma)), ToSizeT(coords.substr(comma + 2))}, coord_end}};
 }
 
 std::optional<std::pair<ast::Rect, size_t>> ASTExtractor::ExtractRect(std::string_view ast,
