@@ -44,8 +44,10 @@ MetricResult::ValueType CodeLinesCountMetric::CalculateImpl(const function::Func
                 }
             }
 
-            if (current_interval.IsOneLine() && comment_lines.contains(current_interval.start_line)) {
-                comment_lines.erase(current_interval.start_line);
+            const auto found_it = std::find(comment_lines.begin(), comment_lines.end(), current_interval.start_line);
+
+            if (current_interval.IsOneLine() && found_it != comment_lines.end()) {
+                comment_lines.erase(found_it);
             } else {
                 s.push(current_interval);
             }
