@@ -31,12 +31,10 @@ CyclomaticComplexityMetric::CalculateImpl(const function::Function &function,
 
                 const auto rect_data = ast_extractor.ExtractRect(nested_ast, start_parsing_at);
                 if (rect_data) {
-                    const auto [rect, _] = *rect_data;
-
-                    if (!already.contains(rect)) {
-                        already.insert(rect);
+                    const auto rect = std::get<ast::Rect>(*rect_data);
+                    const auto [_, was_inserted] = already.insert(rect);
+                    if (was_inserted)
                         res += val;
-                    }
                 }
             }
         });
