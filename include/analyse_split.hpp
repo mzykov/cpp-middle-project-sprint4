@@ -20,12 +20,10 @@ auto SplitByClasses(auto &analysis) {
         return class_name_lambda(lhd) < class_name_lambda(rhd);
     });
 
-    auto chunks = analysis | std::views::chunk_by([&class_name_lambda](const auto &lhd, const auto &rhd) {
-                      return class_name_lambda(lhd) == class_name_lambda(rhd);
-                  }) |
-                  std::views::drop(1);
-
-    return chunks | std::views::transform([&class_name_lambda](const auto &chunk) {
+    return analysis | std::views::chunk_by([&class_name_lambda](const auto &lhd, const auto &rhd) {
+               return class_name_lambda(lhd) == class_name_lambda(rhd);
+           }) |
+           std::views::drop(1) | std::views::transform([&class_name_lambda](const auto &chunk) {
                return std::pair{class_name_lambda(chunk[0]), chunk};
            });
 }

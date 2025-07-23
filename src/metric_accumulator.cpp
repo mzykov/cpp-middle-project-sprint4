@@ -3,13 +3,8 @@
 namespace analyser::metric_accumulator {
 
 void MetricAccumulator::AccumulateNextResults(const metric::MetricResults &metric_results) const {
-    std::ranges::for_each(accumulators_, [&metric_results](auto &p) {
-        const auto &[metric_name, acc] = p;
-        std::ranges::for_each(metric_results, [&metric_name, &acc](const auto &metric_result) {
-            if (metric_name == metric_result.metric_name) {
-                acc->Accumulate(metric_result);
-            }
-        });
+    std::ranges::for_each(metric_results, [&](const auto &metric_result) {
+        accumulators_.at(metric_result.metric_name)->Accumulate(metric_result);
     });
 }
 
