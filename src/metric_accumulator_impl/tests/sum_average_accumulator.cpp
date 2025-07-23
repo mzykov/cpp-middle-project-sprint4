@@ -17,7 +17,8 @@ TEST(TestSumAverageAccumulator, TestAccumulate) {
     const auto got_value = acc.Get();
 
     // then
-    EXPECT_EQ(got_value, expected_value);
+    EXPECT_EQ(got_value.sum, expected_value.sum);
+    EXPECT_DOUBLE_EQ(got_value.average, expected_value.average);
 }
 
 TEST(TestSumAverageAccumulator, TestTwiceAccumulate) {

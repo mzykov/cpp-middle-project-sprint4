@@ -25,10 +25,9 @@ auto SplitByClasses(auto &analysis) {
                   }) |
                   std::views::drop(1);
 
-    auto class_names =
-        chunks | std::views::transform([&class_name_lambda](const auto &chunk) { return class_name_lambda(chunk[0]); });
-
-    return std::views::zip(class_names, chunks);
+    return chunks | std::views::transform([&class_name_lambda](const auto &chunk) {
+               return std::pair{class_name_lambda(chunk[0]), chunk};
+           });
 }
 
 auto SplitByFiles(auto &analysis) {
