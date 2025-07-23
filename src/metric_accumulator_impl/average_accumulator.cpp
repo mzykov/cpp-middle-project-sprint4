@@ -22,6 +22,11 @@ void AverageAccumulator::Reset() {
     is_finalized_ = false;
 }
 
-double AverageAccumulator::Get() const { return average_; }
+double AverageAccumulator::Get() const {
+    if (is_finalized_)
+        return average_;
+    else
+        throw std::runtime_error("Accumulator is not finalized");
+}
 
 }  // namespace analyser::metric_accumulator::metric_accumulator_impl
