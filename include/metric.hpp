@@ -11,6 +11,7 @@ struct MetricResult {
     using ValueType = size_t;
     const std::string metric_name;
     const ValueType metric_value;
+    constexpr auto operator<=>(const MetricResult &) const = default;
 };
 
 struct IMetric {
