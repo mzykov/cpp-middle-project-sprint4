@@ -6,7 +6,8 @@ namespace analyser::metric::metric_impl {
 
 struct CyclomaticComplexityMetric final : public IMetric {
 public:
-    std::string Name() const override { return "CyclomaticComplexity"; }
+    std::string Name() const override { return ConstName(); }
+    static std::string ConstName() { return "CyclomaticComplexity"; }
 
 protected:
     MetricResult::ValueType CalculateImpl(const function::Function &function,

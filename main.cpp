@@ -17,14 +17,15 @@ int main(int argc, char *argv[]) {
 
     analyser::metric::MetricExtractor metric_extractor;
 
-    auto code_lines_mptr = std::make_unique<analyser::metric::metric_impl::CodeLinesCountMetric>();
-    metric_extractor.RegisterMetric(std::move(code_lines_mptr));
-
-    auto cyclomatic_mptr = std::make_unique<analyser::metric::metric_impl::CyclomaticComplexityMetric>();
-    metric_extractor.RegisterMetric(std::move(cyclomatic_mptr));
-
-    auto parameters_mptr = std::make_unique<analyser::metric::metric_impl::ParametersCountMetric>();
-    metric_extractor.RegisterMetric(std::move(parameters_mptr));
+    auto code_lines_metric_name = metric_extractor.RegisterMetric(
+        std::make_unique<analyser::metric::metric_impl::CodeLinesCountMetric>()
+    );
+    auto cyclomatic_metric_name = metric_extractor.RegisterMetric(
+        std::make_unique<analyser::metric::metric_impl::CyclomaticComplexityMetric>()
+    );
+    auto parameters_metric_name = metric_extractor.RegisterMetric(
+        std::make_unique<analyser::metric::metric_impl::ParametersCountMetric>()
+    );
 
     std::vector<std::pair<analyser::function::Function, analyser::metric::MetricResults>> analyseResults;
 
@@ -44,13 +45,13 @@ int main(int argc, char *argv[]) {
         using namespace analyser::metric_accumulator::metric_accumulator_impl;
 
         metric_accumulator.RegisterAccumulator(
-            parameters_mptr->Name(), std::make_shared<AverageAccumulator>()
+            parameters_metric_name, std::make_shared<AverageAccumulator>()
         );
         metric_accumulator.RegisterAccumulator(
-            code_lines_mptr->Name(), std::make_shared<SumAverageAccumulator>()
+            code_lines_metric_name, std::make_shared<SumAverageAccumulator>()
         );
         metric_accumulator.RegisterAccumulator(
-            cyclomatic_mptr->Name(), std::make_shared<SumAverageAccumulator>()
+            cyclomatic_metric_name, std::make_shared<SumAverageAccumulator>()
         );
     }
 
@@ -61,19 +62,19 @@ int main(int argc, char *argv[]) {
         analyser::AccumulateFunctionAnalysis(chunk, metric_accumulator);
 
         const auto code_lines_acc = metric_accumulator.GetFinalizedAccumulator<SumAverageAccumulator>(
-            code_lines_mptr->Name()
+            code_lines_metric_name
         );
-        std::println("\t{}: {}", code_lines_mptr->Name(), code_lines_acc);
+        std::println("\t{}: {}", code_lines_metric_name, code_lines_acc);
 
         const auto cyclomatic_acc = metric_accumulator.GetFinalizedAccumulator<SumAverageAccumulator>(
-            cyclomatic_mptr->Name()
+            cyclomatic_metric_name
         );
-        std::println("\t{}: {}", cyclomatic_mptr->Name(), cyclomatic_acc);
+        std::println("\t{}: {}", cyclomatic_metric_name, cyclomatic_acc);
 
         const auto parameters_acc = metric_accumulator.GetFinalizedAccumulator<AverageAccumulator>(
-            parameters_mptr->Name()
+            parameters_metric_name
         );
-        std::println("\t{}: {}", parameters_mptr->Name(), parameters_acc);
+        std::println("\t{}: {}", parameters_metric_name, parameters_acc);
     };
 
     {

@@ -2,7 +2,10 @@
 
 namespace analyser::metric {
 
-void MetricExtractor::RegisterMetric(std::unique_ptr<IMetric> &&metric) { metrics_.emplace_back(std::move(metric)); }
+std::string MetricExtractor::RegisterMetric(std::unique_ptr<IMetric> &&metric) {
+    metrics_.emplace_back(std::move(metric));
+    return metrics_.back()->Name();
+}
 
 MetricResults MetricExtractor::ProcessOneFunction(const function::Function &function,
                                                   const ast_extractor::ASTExtractor &ast_extractor) const {
