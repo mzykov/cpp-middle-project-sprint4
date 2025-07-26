@@ -32,28 +32,32 @@ std::unordered_set<size_t> ASTExtractor::ExtractAllCommentLineNumbers(std::strin
 
     q.emplace(ast, start_parsing_at);
 
+    // clang-format off
     while (!q.empty()) {
         const auto [ast_fragment, continue_parsing_at] = q.front();
         q.pop();
-
-        const auto comment_data = ExtractCommentASTFragment(ast_fragment, continue_parsing_at);
-        if (comment_data) {
-            const auto [comment_ast, further_parsing_at] = *comment_data;
-            q.emplace(ast_fragment, further_parsing_at);
-
-            constexpr size_t start_parsing_comment_at = 0;
-            const auto rect_data = ExtractRect(comment_ast, start_parsing_comment_at);
-
-            if (rect_data) {
-                const auto [rect, _] = *rect_data;
-                const auto comment_line = ast::LinesInterval{rect};
-
+        ExtractCommentASTFragment(ast_fragment, continue_parsing_at)
+            .and_then([&](const auto &ast_data) {
+                const auto [comment_ast, further_parsing_at] = ast_data;
+                q.emplace(ast_fragment, further_parsing_at);
+                constexpr size_t start_parsing_comment_at = 0;
+                return ExtractRect(comment_ast, start_parsing_comment_at);
+            })
+            .transform([](const auto &rect_data) {
+                return ast::LinesInterval{std::get<ast::Rect>(rect_data)};
+            })
+            .and_then([](const auto &comment_line) {
                 if (comment_line.IsOneLine()) {
-                    res.insert(comment_line.start_line);
+                    return std::optional<size_t>{comment_line.start_line};
+                } else {
+                    return std::optional<size_t>{};
                 }
-            }
-        }
+            })
+            .transform([&res](const auto comment_line_number) {
+                return res.insert(comment_line_number);
+            });
     }
+    // clang-format on
 
     return res;
 }
@@ -143,33 +147,23 @@ std::optional<std::pair<ast::Rect, size_t>> ASTExtractor::ExtractRect(std::strin
     return {{{start, end}, further_parsing_at}};
 }
 
+// clang-format off
 std::optional<ast::Rect> ASTExtractor::GetNameLocation(std::string_view ast) const {
-    const auto data = ExtractIdentifierASTFragment(ast);
-    if (!data)
-        return {};
-
-    constexpr size_t start_parsing_at = 0;
-    const auto [id_ast, _] = *data;
-    const auto rect_data = ExtractRect(id_ast, start_parsing_at);
-
-    if (rect_data) {
-        const auto [rect, _] = *rect_data;
-        return {rect};
-    } else {
-        return {};
-    }
+    return ExtractIdentifierASTFragment(ast)
+        .and_then([&](const auto &p) {
+            constexpr size_t start_parsing_at = 0;
+            return ExtractRect(std::get<std::string_view>(p), start_parsing_at);
+        })
+        .and_then([&](const auto &p) {
+            return std::optional<ast::Rect>{std::get<ast::Rect>(p)};
+        });
 }
+// clang-format on
 
 std::optional<ast::Rect> ASTExtractor::FindEnclosingClass(std::string_view ast, const ast::Rect &function_rect,
                                                           const size_t start_parsing_at) const {
-    const auto ast_data =
-        findEnclosingParentEntityAST(ast, getDefinitionKeyword("class"), function_rect, start_parsing_at);
-
-    if (ast_data) {
-        return GetNameLocation(*ast_data);
-    } else {
-        return {};
-    }
+    return findEnclosingParentEntityAST(ast, getDefinitionKeyword("class"), function_rect, start_parsing_at)
+        .and_then([&](const auto &ast) { return GetNameLocation(ast); });
 }
 
 std::optional<std::string_view> ASTExtractor::FindEnclosingDecoratorAST(std::string_view ast,
@@ -228,15 +222,13 @@ size_t ASTExtractor::FindPositionAfterFunctionDefinition(std::string_view ast, c
     }
 }
 
+// clang-format off
 std::optional<ast::Rect> ASTExtractor::FirstFunctionDefinitionAfterDecorator(std::string_view ast) const {
-    const auto data = ExtractFunctionDefinitionASTFragment(ast);
-
-    if (data) {
-        const auto [function_ast, _] = *data;
-        return GetNameLocation(function_ast);
-    } else {
-        return {};
-    }
+    return ExtractFunctionDefinitionASTFragment(ast)
+        .and_then([&](const auto &p) {
+            return GetNameLocation(std::get<std::string_view>(p));
+        });
 }
+// clang-format on
 
 }  // namespace analyser::ast_extractor
