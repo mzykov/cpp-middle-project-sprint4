@@ -1,64 +1,30 @@
 #pragma once
-#include <unistd.h>
 
-#include <algorithm>
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
-
+#include "ast_extractor.hpp"
 #include "file.hpp"
-
-namespace fs = std::filesystem;
-namespace rv = std::ranges::views;
-namespace rs = std::ranges;
 
 namespace analyser::function {
 
 struct Function {
-    std::string filename;
+    std::string file_name;
     std::optional<std::string> class_name;
-    std::string name;
+    std::string function_name;
     std::string ast;
+    bool is_decorated = false;
 };
 
-struct FunctionExtractor {
-    std::vector<Function> Get(const analyser::file::File& file);
+class FunctionExtractor {
+public:
+    std::vector<Function> ProcessOneFile(const file::File &file) const;
+    const ast_extractor::ASTExtractor &GetAstExtractor() const { return ast_extractor_; }
 
 private:
-    struct Position {
-        size_t line;
-        size_t col;
-    };
+    const ast_extractor::ASTExtractor ast_extractor_{};
 
-    struct FunctionNameLocation {
-        Position start;
-        Position end;
-        std::string name;
-    };
+    std::optional<std::pair<Function, size_t>> processASTFragment(const file::File &file, std::string_view ast,
+                                                                  const size_t start_parsing_at = 0) const;
 
-    struct ClassInfo {
-        std::string name;
-        Position start;
-        Position end;
-    };
-
-    FunctionNameLocation GetNameLocation(const std::string& function_ast);
-    std::string GetNameFromSource(const std::string& function_ast,
-                                  const std::vector<std::string>& lines);
-    std::optional<ClassInfo> FindEnclosingClass(const std::string& ast,
-                                                const FunctionNameLocation& func_loc);
-    std::string GetClassNameFromSource(const ClassInfo& class_info,
-                                       const std::vector<std::string>& lines);
+    std::string getNameFromSource(const ast::Rect &rect, const std::vector<std::string> &lines) const;
 };
 
-} // namespace analyser::function
+}  // namespace analyser::function

@@ -1,175 +1,93 @@
 #include "function.hpp"
 
-#include <unistd.h>
-
-#include <algorithm>
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
-
-#include "file.hpp"
-#include "utils.hpp"
-
-namespace fs = std::filesystem;
-namespace rv = std::ranges::views;
-namespace rs = std::ranges;
+#include <queue>
 
 namespace analyser::function {
 
-std::vector<Function> FunctionExtractor::Get(const analyser::file::File &file) {
-    std::vector<Function> functions;
-    size_t start = 0;
-    const std::string marker = "(function_definition";
-    const std::string &ast = file.ast;
+[[nodiscard]]
+std::vector<Function> FunctionExtractor::ProcessOneFile(const file::File &file) const {
+    std::vector<Function> result;
+    std::queue<std::pair<std::string, size_t>> q;
 
-    while ((start = ast.find(marker, start)) != std::string::npos) {
-        size_t open_braces = 1;
-        size_t end = start + marker.length();
+    constexpr size_t start_parsing_at = 0;
+    q.emplace(file.ast, start_parsing_at);
 
-        while (end < ast.size() && open_braces > 0) {
-            if (ast[end] == '(')
-                open_braces++;
-            else if (ast[end] == ')')
-                open_braces--;
-            end++;
+    while (!q.empty()) {
+        const auto [ast_fragment, continue_parsing_at] = q.front();
+        q.pop();
+
+        const auto data = processASTFragment(file, ast_fragment, continue_parsing_at);
+
+        if (data) {
+            const auto &[function, further_parsing_at] = *data;
+            result.push_back(function);
+            q.emplace(ast_fragment, further_parsing_at);
+            q.emplace(function.ast, ast_extractor_.FindPositionAfterFunctionDefinition(function.ast));
         }
-
-        auto func_ast = ast.substr(start, end - start);
-        auto name_loc = GetNameLocation(func_ast);
-        std::string func_name = GetNameFromSource(func_ast, file.source_lines);
-
-        Function func{.filename = file.name, .class_name = std::nullopt, .name = func_name, .ast = func_ast};
-
-        auto class_info = FindEnclosingClass(ast, name_loc);
-        if (class_info) {
-            func.class_name = GetClassNameFromSource(*class_info, file.source_lines);
-        }
-
-        functions.push_back(func);
-        start = end;
     }
 
-    return functions;
+    return result;
 }
 
-FunctionExtractor::FunctionNameLocation FunctionExtractor::GetNameLocation(const std::string &function_ast) {
-    size_t id_pos = function_ast.find("(identifier");
-    if (id_pos == std::string::npos)
+std::optional<std::pair<Function, size_t>> FunctionExtractor::processASTFragment(const file::File &file,
+                                                                                 std::string_view ast,
+                                                                                 const size_t start_parsing_at) const {
+    const auto data = ast_extractor_.ExtractFunctionDefinitionASTFragment(ast, start_parsing_at);
+
+    if (!data) {
         return {};
-
-    size_t coord_start = function_ast.find('[', id_pos);
-    size_t coord_end = function_ast.find(']', coord_start);
-    std::string coords = function_ast.substr(coord_start + 1, coord_end - coord_start - 1);
-
-    size_t comma = coords.find(',');
-    Position start{static_cast<size_t>(ToInt(coords.substr(0, comma))),
-                   static_cast<size_t>(ToInt(coords.substr(comma + 2)))};
-
-    size_t dash = function_ast.find('[', coord_end);
-    size_t end_bracket = function_ast.find(']', dash);
-    std::string end_coords = function_ast.substr(dash + 1, end_bracket - dash - 1);
-
-    comma = end_coords.find(',');
-    Position end{static_cast<size_t>(ToInt(end_coords.substr(0, comma))),
-                 static_cast<size_t>(ToInt(end_coords.substr(comma + 2)))};
-
-    return {start, end, ""};
-}
-
-std::string FunctionExtractor::GetNameFromSource(const std::string &function_ast,
-                                                 const std::vector<std::string> &lines) {
-    auto loc = GetNameLocation(function_ast);
-    if (loc.start.line >= lines.size())
-        return "unknown";
-
-    const std::string &target_line = lines[loc.start.line];
-    if (loc.start.col >= target_line.size())
-        return "unknown";
-
-    return target_line.substr(loc.start.col, loc.end.col - loc.start.col);
-}
-
-std::optional<FunctionExtractor::ClassInfo>
-FunctionExtractor::FindEnclosingClass(const std::string &ast, const FunctionNameLocation &func_loc) {
-    size_t class_pos = 0;
-    const std::string class_marker = "(class_definition";
-    std::optional<ClassInfo> last_enclosing_class;
-
-    while ((class_pos = ast.find(class_marker, class_pos)) != std::string::npos) {
-        size_t coord_start = ast.find('[', class_pos);
-        size_t coord_end = ast.find(']', coord_start);
-        std::string coords = ast.substr(coord_start + 1, coord_end - coord_start - 1);
-
-        size_t comma = coords.find(',');
-        Position class_start{static_cast<size_t>(ToInt(coords.substr(0, comma))),
-                             static_cast<size_t>(ToInt(coords.substr(comma + 1)))};
-
-        size_t dash = ast.find('-', coord_end);
-        size_t second_coord_start = ast.find('[', dash);
-        size_t second_coord_end = ast.find(']', second_coord_start);
-        std::string end_coords = ast.substr(second_coord_start + 1, second_coord_end - second_coord_start - 1);
-
-        comma = end_coords.find(',');
-        Position class_end{static_cast<size_t>(ToInt(end_coords.substr(0, comma))),
-                           static_cast<size_t>(ToInt(end_coords.substr(comma + 1)))};
-
-        if (func_loc.start.line > class_start.line ||
-            (func_loc.start.line == class_start.line && func_loc.start.col >= class_start.col)) {
-            if (func_loc.start.line < class_end.line ||
-                (func_loc.start.line == class_end.line && func_loc.start.col <= class_end.col)) {
-                size_t name_start = ast.find("name:", coord_end);
-                if (name_start != std::string::npos) {
-                    size_t id_start = ast.find("(identifier", name_start);
-                    if (id_start != std::string::npos) {
-                        size_t id_coord_start = ast.find('[', id_start);
-                        size_t id_coord_end = ast.find(']', id_coord_start);
-                        std::string id_coords = ast.substr(id_coord_start + 1, id_coord_end - id_coord_start - 1);
-
-                        ClassInfo class_info;
-                        class_info.start = class_start;
-                        class_info.end = class_end;
-                        last_enclosing_class = class_info;
-                    }
-                }
-            }
-        }
-
-        class_pos = second_coord_end;
     }
 
-    return last_enclosing_class;
+    const auto [function_ast, continue_parsing_at] = *data;
+    const auto name_loc = ast_extractor_.GetNameLocation(function_ast);
+
+    if (!name_loc) {
+        return {};
+    }
+
+    const auto function_name = getNameFromSource(*name_loc, file.source_lines);
+
+    std::optional<std::string> class_name;
+    if (const auto class_loc = ast_extractor_.FindEnclosingClass(file.ast, *name_loc)) {
+        class_name = getNameFromSource(*class_loc, file.source_lines);
+    }
+
+    bool is_decorated = false;
+    const auto decorated_ast = ast_extractor_.FindEnclosingDecoratorAST(file.ast, *name_loc);
+
+    if (decorated_ast) {
+        const auto maybe_nested_name_loc = ast_extractor_.FirstFunctionDefinitionAfterDecorator(*decorated_ast);
+
+        if (maybe_nested_name_loc && *maybe_nested_name_loc == *name_loc) {
+            is_decorated = true;
+        }
+    }
+
+    // clang-format off
+    const auto function = Function{
+        .file_name     = file.name,
+        .class_name    = class_name,
+        .function_name = function_name,
+        .ast           = std::string{is_decorated ? *decorated_ast : function_ast},
+        .is_decorated  = is_decorated,
+    };
+    // clang-format on
+
+    return {{function, continue_parsing_at}};
 }
 
-std::string FunctionExtractor::GetClassNameFromSource(const ClassInfo &class_info,
-                                                      const std::vector<std::string> &lines) {
-    if (class_info.start.line >= lines.size())
+std::string FunctionExtractor::getNameFromSource(const ast::Rect &rect, const std::vector<std::string> &lines) const {
+    const auto [start, end] = rect;
+
+    if (start.line >= lines.size())
         return "unknown";
 
-    const std::string &class_line = lines[class_info.start.line];
+    std::string_view target_line = lines[start.line];
 
-    size_t class_pos = class_line.find("class");
-    if (class_pos == std::string::npos)
+    if (start.col >= target_line.size())
         return "unknown";
 
-    size_t name_start = class_line.find_first_not_of(" \t", class_pos + 5);
-    if (name_start == std::string::npos)
-        return "unknown";
-
-    size_t name_end = class_line.find_first_of(" :{(", name_start);
-    if (name_end == std::string::npos)
-        name_end = class_line.length();
-
-    return class_line.substr(name_start, name_end - name_start);
+    return std::string{target_line.substr(start.col, end.col - start.col)};
 }
 
 }  // namespace analyser::function

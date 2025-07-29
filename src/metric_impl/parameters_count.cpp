@@ -1,21 +1,18 @@
 #include "metric_impl/parameters_count.hpp"
 
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
-
 namespace analyser::metric::metric_impl {
 
-// здесь ваш код
+MetricResult::ValueType ParametersCountMetric::CalculateImpl(const function::Function &function,
+                                                             const ast_extractor::ASTExtractor &ast_extractor) const {
+    std::string_view function_ast = function.ast;
+    const auto data = ast_extractor.ExtractParametersASTFragment(function_ast);
+
+    if (data) {
+        const auto [parameters_ast, _] = *data;
+        return ast_extractor.CountFirstLevelASTNodes(parameters_ast);
+    } else {
+        return 0;
+    }
+}
 
 }  // namespace analyser::metric::metric_impl

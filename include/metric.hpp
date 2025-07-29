@@ -1,56 +1,45 @@
 #pragma once
-#include <unistd.h>
 
 #include <algorithm>
-#include <any>
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
 #include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
 
 #include "function.hpp"
-
-namespace fs = std::filesystem;
-namespace rv = std::ranges::views;
-namespace rs = std::ranges;
 
 namespace analyser::metric {
 
 struct MetricResult {
-    using ValueType = int;
-    // using ValueType = std::variant<int, std::string>; // если захотите реализовывать метрику
-    // naming style
-    std::string metric_name; // Название метрики
-    ValueType value;         // Значение метрики
+    using ValueType = size_t;
+    const std::string metric_name;
+    const ValueType metric_value;
+    constexpr auto operator<=>(const MetricResult &) const = default;
 };
 
 struct IMetric {
     virtual ~IMetric() = default;
-    MetricResult Calculate(const function::Function& f) const {
-        return MetricResult{.metric_name = Name(), .value = CalculateImpl(f)};
+    virtual std::string Name() const = 0;
+
+    MetricResult Calculate(const function::Function &function, const ast_extractor::ASTExtractor &ast_extractor) const {
+        return MetricResult{
+            .metric_name = Name(),
+            .metric_value = CalculateImpl(function, ast_extractor),
+        };
     }
 
 protected:
-    virtual MetricResult::ValueType CalculateImpl(const function::Function& f) const = 0;
-    virtual std::string Name() const = 0;
+    virtual MetricResult::ValueType CalculateImpl(const function::Function &function,
+                                                  const ast_extractor::ASTExtractor &ast_extractor) const = 0;
 };
 
 using MetricResults = std::vector<MetricResult>;
 
-struct MetricExtractor {
-    void RegisterMetric(std::unique_ptr<IMetric> metric);
+class MetricExtractor {
+public:
+    void RegisterMetric(std::unique_ptr<IMetric> &&metric);
+    MetricResults ProcessOneFunction(const function::Function &function,
+                                     const ast_extractor::ASTExtractor &ast_extractor) const;
 
-    MetricResults Get(const function::Function& func) const;
-    std::vector<std::unique_ptr<IMetric>> metrics;
+private:
+    std::vector<std::unique_ptr<IMetric>> metrics_;
 };
 
-} // namespace analyser::metric
+}  // namespace analyser::metric

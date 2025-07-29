@@ -1,55 +1,44 @@
 #pragma once
-#include <unistd.h>
 
-#include <algorithm>
-#include <any>
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
+#include <format>
+#include <unordered_map>
 
 #include "metric.hpp"
-
-namespace rv = std::ranges::views;
-namespace rs = std::ranges;
 
 namespace analyser::metric_accumulator {
 
 struct IAccumulator {
-    virtual void Accumulate(const metric::MetricResult& metric_result) = 0;
+    virtual void Accumulate(const metric::MetricResult &metric_result) = 0;
     virtual void Finalize() = 0;
     virtual void Reset() = 0;
     virtual ~IAccumulator() = default;
 
 protected:
-    bool is_finalized = false;
+    bool is_finalized_ = false;
 };
 
-struct MetricsAccumulator {
+struct MetricAccumulator {
     template <typename Accumulator>
-    void RegisterAccumulator(const std::string& metric_name, std::unique_ptr<Accumulator> acc) {
-        // здесь ваш код
+    void RegisterAccumulator(const std::string &metric_name, const std::shared_ptr<Accumulator> acc) {
+        accumulators_[metric_name] = acc;
     }
-    template <typename Accumulator>
-    const Accumulator& GetFinalizedAccumulator(const std::string& metric_name) const {
-        // здесь ваш код
-    }
-    void AccumulateNextFunctionResults(
-        const std::vector<metric::MetricResult>& metric_results) const;
 
+    template <typename Accumulator>
+    const Accumulator &GetFinalizedAccumulator(const std::string &metric_name) const {
+        auto acc = dynamic_cast<Accumulator *>(accumulators_.at(metric_name).get());
+        if (acc) {
+            acc->Finalize();
+            return *acc;
+        } else {
+            throw std::runtime_error("No accumulator found for metric " + metric_name);
+        }
+    }
+
+    void AccumulateNextResults(const metric::MetricResults &metric_results) const;
     void ResetAccumulators();
 
 private:
-    std::unordered_map<std::string, std::shared_ptr<IAccumulator>> accumulators;
+    std::unordered_map<std::string, std::shared_ptr<IAccumulator>> accumulators_;
 };
 
-} // namespace analyser::metric_accumulator
+}  // namespace analyser::metric_accumulator

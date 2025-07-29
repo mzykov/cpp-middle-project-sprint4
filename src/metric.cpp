@@ -1,34 +1,15 @@
 #include "metric.hpp"
 
-#include <unistd.h>
-
-#include <algorithm>
-#include <any>
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
-
-#include "function.hpp"
-
 namespace analyser::metric {
 
-void MetricExtractor::RegisterMetric(std::unique_ptr<IMetric> metric) {
-    // здесь ваш код
-}
+void MetricExtractor::RegisterMetric(std::unique_ptr<IMetric> &&metric) { metrics_.emplace_back(std::move(metric)); }
 
-MetricResults MetricExtractor::Get(const function::Function &func) const {
-    // здесь ваш код
-    return {};
+MetricResults MetricExtractor::ProcessOneFunction(const function::Function &function,
+                                                  const ast_extractor::ASTExtractor &ast_extractor) const {
+    return metrics_ | std::views::transform([&](const auto &metric_ptr) {
+               return metric_ptr->Calculate(function, ast_extractor);
+           }) |
+           std::ranges::to<MetricResults>();
 }
 
 }  // namespace analyser::metric

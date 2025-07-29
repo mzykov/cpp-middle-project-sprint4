@@ -1,43 +1,45 @@
 #pragma once
-#include <unistd.h>
-
-#include <algorithm>
-#include <array>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <variant>
-#include <vector>
 
 #include "metric_accumulator.hpp"
 
 namespace analyser::metric_accumulator::metric_accumulator_impl {
 
-struct SumAverageAccumulator: public IAccumulator {
+struct SumAverageAccumulator final : public IAccumulator {
     struct SumAverage {
         int sum;
         double average;
-        auto operator<=>(const SumAverage&) const = default;
+        constexpr auto operator<=>(const SumAverage &) const = default;
     };
-    void Accumulate(const metric::MetricResult& metric_result) override;
 
+    void Accumulate(const metric::MetricResult &metric_result) override;
     virtual void Finalize() override;
-
     virtual void Reset() override;
 
     SumAverage Get() const;
 
 private:
-    int sum = 0;
-    int count = 0;
-    double average = 0;
+    int sum_ = 0;
+    int count_ = 0;
+    double average_ = 0;
 };
 
-} // namespace analyser::metric_accumulator::metric_accumulator_impl
+}  // namespace analyser::metric_accumulator::metric_accumulator_impl
+
+namespace std {
+
+using namespace analyser::metric_accumulator::metric_accumulator_impl;
+
+template <>
+struct formatter<SumAverageAccumulator> {
+    template <typename FormatContext>
+    auto format(const SumAverageAccumulator &acc, FormatContext &fc) const {
+        const auto val = acc.Get();
+        format_to(fc.out(), "sum = {}, avg = {:.3}", val.sum, val.average);
+        return fc.out();
+    }
+    constexpr auto parse(format_parse_context &ctx) {
+        return ctx.begin();  // Просто игнорируем пользовательский формат
+    }
+};
+
+}  // namespace std

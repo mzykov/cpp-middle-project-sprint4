@@ -7,14 +7,12 @@ class AnalyserConan(ConanFile):
     name = "analyser"
     version = "1.0.0"
     settings = "os", "compiler", "build_type", "arch"
-    
+
     default_options = {
         # Базовые настройки
         "boost/*:shared": False,
         "boost/*:header_only": False,
-
         "boost/*:without_program_options": False,
-        
         "boost/*:without_atomic": True,
         "boost/*:without_chrono": True,
         "boost/*:without_container": True,
@@ -47,25 +45,24 @@ class AnalyserConan(ConanFile):
         "boost/*:without_url": True,
         "boost/*:without_python": True
     }
-    
+
     def requirements(self):
         self.requires("boost/1.83.0")
         self.requires("gtest/1.13.0")
         self.requires("range-v3/0.12.0")
         self.tool_requires("cmake/3.30.0")
-    
+
     def layout(self):
         self.folders.source = "."
         self.folders.build = "build"
         self.folders.generators = "build/generators"
-    
+
     def generate(self):
         deps = CMakeDeps(self)
         deps.generate()
-        
         tc = CMakeToolchain(self)
         tc.generate()
-    
+
     def build(self):
         cmake = CMake(self)
         cmake.configure()

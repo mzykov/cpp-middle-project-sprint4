@@ -14,6 +14,7 @@ execute_process(
 
 find_package(GTest REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(range-v3 REQUIRED)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
@@ -21,20 +22,54 @@ include_directories(
 
 set(target analyser)
 
-add_executable(${target} main.cpp)
-target_include_directories(${target} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+add_executable(${target} main.cpp src/analyse.cpp)
+
+target_include_directories(${target}
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries(${target} 
     PRIVATE
+        ast_extractor
         metric_accumulator
         metric
         cmd_options
         range-v3::range-v3
 )
 
-include(CTest)
+#
+# Тесты
+#
+
+# Рекурсивно ищем все используемые в тестах .cpp файлы
+file(GLOB TEST_SRC_FILES "${CMAKE_SOURCE_DIR}/tests/*.cpp")
+
+add_executable(${PROJECT_NAME}_tests "${TEST_SRC_FILES}")
+
+target_link_libraries(${PROJECT_NAME}_tests
+    PRIVATE
+	analyse
+        ast_extractor
+	file
+	function
+	metric
+        GTest::GTest
+        GTest::Main
+)
+
+target_include_directories(${PROJECT_NAME}_tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+# Включаем тестирование
 enable_testing()
+add_test(
+    NAME analyser_tests
+    COMMAND ${PROJECT_NAME}_tests
+)
+
+include(CTest)
 
 add_subdirectory(src)
