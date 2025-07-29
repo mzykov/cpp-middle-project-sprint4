@@ -11,14 +11,10 @@
 
 namespace analyser {
 
-auto SplitByClasses(auto &analysis) {
+auto SplitByClasses(const auto &analysis) {
     const auto class_name_lambda = [](const auto &p) {
         return std::get<function::Function>(p).class_name.value_or("");
     };
-
-    std::ranges::sort(analysis, [&class_name_lambda](const auto &lhd, const auto &rhd) {
-        return class_name_lambda(lhd) < class_name_lambda(rhd);
-    });
 
     return analysis | std::views::chunk_by([&class_name_lambda](const auto &lhd, const auto &rhd) {
                return class_name_lambda(lhd) == class_name_lambda(rhd);
@@ -28,12 +24,8 @@ auto SplitByClasses(auto &analysis) {
            });
 }
 
-auto SplitByFiles(auto &analysis) {
+auto SplitByFiles(const auto &analysis) {
     const auto file_name_lambda = [](const auto &p) { return std::get<function::Function>(p).file_name; };
-
-    std::ranges::sort(analysis, [&file_name_lambda](const auto &lhd, const auto &rhd) {
-        return file_name_lambda(lhd) < file_name_lambda(rhd);
-    });
 
     auto chunks = analysis | std::views::chunk_by([&file_name_lambda](const auto &lhd, const auto &rhd) {
                       return file_name_lambda(lhd) == file_name_lambda(rhd);

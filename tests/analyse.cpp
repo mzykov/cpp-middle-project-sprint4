@@ -28,9 +28,13 @@ TEST(TestAnalyseFunctions, TestMetrics) {
     };
 
     MetricExtractor metric_extractor;
-    auto CodeLinesCountMetricName       = metric_extractor.RegisterMetric(std::make_unique<CodeLinesCountMetric>());
-    auto CyclomaticComplexityMetricName = metric_extractor.RegisterMetric(std::make_unique<CyclomaticComplexityMetric>());
-    auto ParametersCountMetricName      = metric_extractor.RegisterMetric(std::make_unique<ParametersCountMetric>());
+    metric_extractor.RegisterMetric(std::make_unique<CodeLinesCountMetric>());
+    metric_extractor.RegisterMetric(std::make_unique<CyclomaticComplexityMetric>());
+    metric_extractor.RegisterMetric(std::make_unique<ParametersCountMetric>());
+
+    auto CodeLinesCountMetricName       = CodeLinesCountMetric::ConstName();
+    auto CyclomaticComplexityMetricName = CyclomaticComplexityMetric::ConstName();
+    auto ParametersCountMetricName      = ParametersCountMetric::ConstName();
 
     const std::vector<std::tuple<std::string, std::string, std::optional<std::string>, MetricResults>> expected{
         { given_file_names[0],  "Func_comments",            std::nullopt,        {{CodeLinesCountMetricName, 4},  {CyclomaticComplexityMetricName, 0}, {ParametersCountMetricName, 3}} },

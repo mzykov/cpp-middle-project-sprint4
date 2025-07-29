@@ -34,7 +34,7 @@ using MetricResults = std::vector<MetricResult>;
 
 class MetricExtractor {
 public:
-    std::string RegisterMetric(std::unique_ptr<IMetric> &&metric);
+    void RegisterMetric(std::unique_ptr<IMetric> &&metric);
     MetricResults ProcessOneFunction(const function::Function &function,
                                      const ast_extractor::ASTExtractor &ast_extractor) const;
 

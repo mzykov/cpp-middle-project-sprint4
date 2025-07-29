@@ -17,13 +17,13 @@ int main(int argc, char *argv[]) {
 
     analyser::metric::MetricExtractor metric_extractor;
 
-    auto code_lines_metric_name = metric_extractor.RegisterMetric(
+    metric_extractor.RegisterMetric(
         std::make_unique<analyser::metric::metric_impl::CodeLinesCountMetric>()
     );
-    auto cyclomatic_metric_name = metric_extractor.RegisterMetric(
+    metric_extractor.RegisterMetric(
         std::make_unique<analyser::metric::metric_impl::CyclomaticComplexityMetric>()
     );
-    auto parameters_metric_name = metric_extractor.RegisterMetric(
+    metric_extractor.RegisterMetric(
         std::make_unique<analyser::metric::metric_impl::ParametersCountMetric>()
     );
 
@@ -43,38 +43,40 @@ int main(int argc, char *argv[]) {
     analyser::metric_accumulator::MetricAccumulator metric_accumulator;
     {
         using namespace analyser::metric_accumulator::metric_accumulator_impl;
+        using namespace analyser::metric::metric_impl;
 
         metric_accumulator.RegisterAccumulator(
-            parameters_metric_name, std::make_shared<AverageAccumulator>()
+            ParametersCountMetric::ConstName(), std::make_shared<AverageAccumulator>()
         );
         metric_accumulator.RegisterAccumulator(
-            code_lines_metric_name, std::make_shared<SumAverageAccumulator>()
+            CodeLinesCountMetric::ConstName(), std::make_shared<SumAverageAccumulator>()
         );
         metric_accumulator.RegisterAccumulator(
-            cyclomatic_metric_name, std::make_shared<SumAverageAccumulator>()
+            CyclomaticComplexityMetric::ConstName(), std::make_shared<SumAverageAccumulator>()
         );
     }
 
     const auto accumulated_lambda = [&](const auto &chunk){
         using namespace analyser::metric_accumulator::metric_accumulator_impl;
+        using namespace analyser::metric::metric_impl;
 
         metric_accumulator.ResetAccumulators();
         analyser::AccumulateFunctionAnalysis(chunk, metric_accumulator);
 
         const auto code_lines_acc = metric_accumulator.GetFinalizedAccumulator<SumAverageAccumulator>(
-            code_lines_metric_name
+            CodeLinesCountMetric::ConstName()
         );
-        std::println("\t{}: {}", code_lines_metric_name, code_lines_acc);
+        std::println("\t{}: {}", CodeLinesCountMetric::ConstName(), code_lines_acc);
 
         const auto cyclomatic_acc = metric_accumulator.GetFinalizedAccumulator<SumAverageAccumulator>(
-            cyclomatic_metric_name
+            CyclomaticComplexityMetric::ConstName()
         );
-        std::println("\t{}: {}", cyclomatic_metric_name, cyclomatic_acc);
+        std::println("\t{}: {}", CyclomaticComplexityMetric::ConstName(), cyclomatic_acc);
 
         const auto parameters_acc = metric_accumulator.GetFinalizedAccumulator<AverageAccumulator>(
-            parameters_metric_name
+            ParametersCountMetric::ConstName()
         );
-        std::println("\t{}: {}", parameters_metric_name, parameters_acc);
+        std::println("\t{}: {}", ParametersCountMetric::ConstName(), parameters_acc);
     };
 
     {
